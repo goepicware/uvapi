@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+    <meta name="viewport" content="width=device-width" initial-scale="1.0" user-scalable="yes" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  
+        <title>{title}</title>
+       <style>
+	
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body, table, td, p, a, li {
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+}
+
+a {
+  word-wrap: break-word;
+}
+
+table td {
+  border-collapse: collapse;
+}
+
+table {
+  border-spacing: 0;
+  border-collapse: collapse;
+  mso-table-lspace: 0pt;
+  mso-table-rspace: 0pt;
+}
+
+table, td {
+  mso-table-lspace: 0pt;
+  mso-table-rspace: 0pt;
+}
+
+.ReadMsgBody { 
+	width:100%; 
+	background-color: #eeeeee; 
+}
+
+.ExternalClass { 
+	width: 100%; 
+	background-color: #eeeeee; 
+}
+
+.ExternalClass, .ExternalClass p, .ExternalClass span, .ExternalClass font, .ExternalClass td, .ExternalClass div { 
+	line-height: 100%; 
+}
+
+.ExternalClass * {
+	line-height: 100%;
+}
+
+@media only screen and (max-width: 640px) {
+
+  table[class="main"],td[class="main"] { width:100% !important; min-width: 200px !important; }
+  
+  table[class="logo-img"] { width:100% !important; float: none; margin-bottom: 15px;}
+  table[class="logo-img"] td { text-align: center !important;}
+  
+  table[class="logo-title"] { width:100% !important; float: none;}
+  table[class="logo-title"] td { text-align: center; height: auto}
+  table[class="logo-title"] h1 { font-size: 24px !important; }
+  table[class="logo-title"] h2 { font-size: 18px !important; }
+  
+  td[class="header-img"] img { width:100% !important; height:auto !important; }
+
+  td[class="title"] { padding-left: 25px !important; padding-right: 25px !important; }
+  td[class="title"] h1 { font-size: 24px !important; }
+  
+  td.block-text { padding-left: 25px !important; padding-right: 25px !important; }
+  td[class="block-text"] h2 { font-size: 20px !important; line-height: 170% !important; }
+  td[class="block-text"] p { font-size: 16px !important; line-height: 170% !important; }
+  td[class="block-text"] li { font-size: 16px !important; line-height: 170% !important; }
+  
+  td[class="two-columns"] { padding-left: 25px !important; padding-right: 25px !important; }
+  table[class="text-column"] { width:100% !important; float: none; margin-bottom: 15px;}
+
+  td[class="image-caption"] { padding-left: 25px !important; padding-right: 25px !important; }
+  table[class="image-caption-container"] { width:100% !important;}
+  table[class="image-caption-column"] { width:100% !important; float: none;}
+  td[class="image-caption-content"] img { width:100% !important; height:auto !important; }
+  td[class="image-caption-content"] h2 { font-size: 20px !important; line-height: 170% !important; }
+  td[class="image-caption-content"] p { font-size: 16px !important; line-height: 170% !important; }
+  td[class="image-caption-top-gap"] { height: 15px !important; }
+  td[class="image-caption-bottom-gap"] { height: 5px !important; }
+  
+  td[class="text"] { width:100% !important; }
+  td[class="text"] p { font-size: 16px !important; line-height: 170% !important; }
+  td[class="text"] h2 { font-size: 20px !important; line-height: 170% !important; }
+  td[class="gap"] { display:none; }
+  
+  td[class="header"] { padding: 25px 25px 25px 25px !important; }
+  td[class="header"] h1 { font-size: 24px !important; }
+  td[class="header"] h2 { font-size: 20px !important; }
+  
+  td[class="footer"] { padding-left: 25px !important; padding-right: 25px !important; }
+  td[class="footer"] p { font-size: 13px !important; }
+  table[class="footer-side"] { width: 100% !important; float: none !important; }
+  td[class="footer-side"] { text-align: center !important; }
+  td[class="social-links"] { text-align: center !important; }
+  table[class="footer-social-icons"] { float: none !important; margin: 0px auto !important; }
+  td[class="social-icon-link"] { padding: 0px 5px !important; }
+  
+  td[class="image"] img { width:100% !important; height:auto !important; }
+  td[class="image"] { padding-left: 25px !important; padding-right: 25px !important; }
+  
+  td[class="image-full"] img { width:100% !important; height:auto !important; }
+  td[class="image-full"] { padding-left: 0px !important; padding-right: 0px !important; }
+  
+  td[class="image-group"] img { width:100% !important; height:auto !important; margin: 15px 0px 15px 0px !important; }
+  td[class="image-group"] { padding-left: 25px !important; padding-right: 25px !important; }
+  
+  table[class="image-in-table"] { width:100% !important; float: none; margin-bottom: 15px;}
+  table[class="image-in-table"] td { width:100% !important;}
+  table[class="image-in-table"] img { width:100% !important; height:auto !important; }
+  
+  
+  td[class="image-text"] { padding-left: 25px !important; padding-right: 25px !important; }
+  td[class="image-text"] p { font-size: 16px !important; line-height: 170% !important; }
+  
+  td[class="divider-simple"] { padding-left: 25px !important; padding-right: 25px !important; }
+  
+  td[class="divider-full"] { padding-left: 0px !important; padding-right: 0px !important; }
+  
+  td[class="social"] { padding-left: 25px !important; padding-right: 25px !important; }
+  
+  table[class="preheader"] { display:none; }
+  td[class="preheader-gap"] { display:none; }
+  td[class="preheader-link"] { display:none; }
+  td[class="preheader-text"] { width:100%; }
+  
+  td[class="buttons"] { padding-left: 25px !important; padding-right: 25px !important; }
+  
+  table[class="button"] { width:100% !important; float: none; }
+  
+  td[class="content-buttons"] { padding-left: 25px !important; padding-right: 25px !important; }
+  td[class="buttons-full-width"] { padding-left: 0px !important; padding-right: 0px !important; }
+  td[class="buttons-full-width"] a { width:100% !important; padding-left: 0px !important; padding-right: 0px !important; }
+  td[class="buttons-full-width"] span { width:100% !important; padding-left: 0px !important; padding-right: 0px !important; }
+  
+  table[class="content"] { width:100% !important; float: none !important;} 
+  td[class="gallery-image"] { width:100% !important; padding: 0px !important;}
+  
+  table[class="social"] { width: 100%!important; text-align: center!important; }
+  table[class="links"] { width: 100%!important; }
+  table[class="links"] td { text-align: center!important; }
+  table[class="footer-btn"] { text-align: center!important; width: 100%!important; margin-bottom: 10px; }
+  table[class="footer-btn-wrap"] { margin-bottom: 0px; width: 100%!important; }
+  
+  td[class="head-social"]  { width: 100%!important; text-align: center!important; padding-top: 20px; }
+  td[class="head-logo"]  { width: 100%!important; text-align: center!important; }
+  tr[class="header-nav"] { display: none; }
+  
+}
+
+</style>
+    
+</head>
+
+    
+<body>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background: rgb(227, 41, 100);">
+                    <tbody><tr>
+                    <td width="100%" id="primary" class="main demo" align="center" valign="top" style="min-height: 4107px;"> <table width="640" class="preheader" align="center" cellspacing="0" cellpadding="0" border="0">
+					<tbody><tr>
+					<td align="left" class="preheader-text" width="420" style="padding: 15px 0px; font-family: Arial; font-size: 11px; color: #666666"></td>
+					<td class="preheader-gap" width="20"></td>
+					<td class="preheader-link" align="right" width="200" style="padding: 15px 0px; font-family: Arial; font-size: 11px; color: #666666"></td>
+					</tr>
+					</tbody></table><table width="640" class="main" cellspacing="0" cellpadding="0" border="0" align="center" style="background-color: rgb(199, 86, 199); display: table;" data-type="title" id="1c8f68ec-b00b-e352-d7e8-11aac40da533">
+                    <tbody>
+                    <tr>
+                    <td align="left" class="title" style="padding:5px 50px 5px 50px">
+                    <h1 style="font-family: Arial; border: none; color: rgb(51, 51, 51); font-size: 36px; text-align: center;" class=""> Enter your Title here! </h1>
+                    <h4 class="" style="border: none; text-align: center;">Your Subtitle</h4>
+                    </td>
+                    </tr>
+                    </tbody>
+                    </table><table width="640" class="main" cellspacing="0" cellpadding="0" border="0" bgcolor="#FFFFFF" align="center" style="background-color: rgb(65, 209, 91); display: table;" data-type="button" id="0e1058f6-756b-7c30-032c-f6b82949b5bf">
+                    <tbody>
+                    <tr>
+                    <td style="padding: 5px;" class="buttons-full-width">
+                    <table width="" cellspacing="0" cellpadding="0" border="0" align="right" class="button">
+                    <tbody>
+                    <tr>
+                    <td style="margin: 10px; padding: 5px;" class="button">
+                    <a style="background-color: rgb(52, 152, 219); color: rgb(255, 255, 255); font-family: Arial; font-size: 12px; line-height: 21px; border-radius: 6px; text-align: center; text-decoration: none; font-weight: bold; display: block; margin: 0px; padding: 12px 20px; width: 200px;" class="button-1" href="#ff0" data-default="1">Click me</a>                   <!--[if mso]>             </center>           </v:roundrect>         <![endif]-->
+                    </td>
+
+                    </tr>
+                    </tbody>
+                    </table>
+                    </td>
+                    </tr>
+                    </tbody>
+                    </table><table class="main" width="640" cellspacing="0" cellpadding="0" border="0" bgcolor="#FFFFFF" align="center" style="background-color: rgb(166, 70, 166); display: table;" data-type="imgtxtincol" id="324b6d31-2de9-97b3-8d65-035d3813d2b2">
+                    <tbody>
+                    <tr>
+                    <td class="image-caption" style="padding: 0px 3px;">
+                    <table class="image-caption-container" align="left" border="0" cellpadding="0" cellspacing="0" width="350">
+                    <tbody>
+                    <tr>
+                    <td style="padding: 0px 3px;">
+                    <table class="image-caption-column" align="left" border="0" cellpadding="0" cellspacing="0" width="160">
+                    <tbody>
+                    <tr>
+                    <td height="15" width="100%" style="padding: 0px 3px;"></td>
+                    </tr>
+                    <tr>
+                    <td class="image-caption-content image" style="font-family: Arial; font-size: 13px; color: rgb(0, 0, 0); padding: 0px 3px;">
+                    <img src="http://ccpl.jankosoftworks.com/drag-drop-editor/images/unnamed.png" alt="" style="display: block; border: none;" height="154px" align="2" border="0" width="160px" id="89c92703-ebe1-9a28-4adb-a6aa9ad01a43" class="">
+                    </td>
+                    </tr>
+                    <tr>
+                    <td height="15" width="100%" style="padding: 0px 3px;"></td>
+                    </tr>
+                    <tr>
+                    <td class="image-caption-content text" style="font-family: Arial; font-size: 13px; color: rgb(0, 0, 0); line-height: 22px; padding: 0px 3px;" align="left">
+                    <p style="margin: 0px 0px 10px; line-height: 22px; border: none; font-size: 16px;" class="">  Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur. Quis aute iure reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. </p>
+                    </td>
+                    </tr>
+                    <tr>
+                    <td class="image-caption-bottom-gap" height="5" width="100%" style="padding: 0px 3px;"></td>
+                    </tr>
+                    </tbody>
+                    </table>
+                    <table class="image-caption-column" align="right" border="0" cellpadding="0" cellspacing="0" width="160">
+                    <tbody>
+                    <tr>
+                    <td class="image-caption-top-gap" height="15" width="100%" style="padding: 0px 3px;"></td>
+                    </tr>
+                    <tr>
+                    <td class="image-caption-content image" style="font-family: Arial; font-size: 13px; color: rgb(0, 0, 0); padding: 0px 3px;">
+                    <img src="http://ccpl.jankosoftworks.com/drag-drop-editor/images/1_logo.jpg" alt="" style="display: block; border: none;" height="154px" align="2" border="0" width="160px" id="01174e47-cbca-bdcf-41fb-84d093f9f6e8" class="">
+                    </td>
+                    </tr>
+                    <tr>
+                    <td height="15" width="100%" style="padding: 0px 3px;"></td>
+                    </tr>
+                    <tr>
+                    <td class="image-caption-content text" style="font-family: Arial; font-size: 13px; color: rgb(0, 0, 0); line-height: 22px; padding: 0px 3px;" align="left">
+                    <p style="margin: 0px 0px 10px; line-height: 22px; border: none; font-family: Times; color: rgb(0, 0, 0); font-size: 27px;" pt="" serif";="" color:="" rgb(0,="" 0,="" 0);="" font-size:="" 18px;"="" class="">Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrum exercitationem ullam corporis <strong>suscipit</strong> laboriosam, nisi ut aliquid ex ea commodi consequatur. Quis aute iure reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                    </td>
+                    </tr>
+                    <tr>
+                    <td class="image-caption-bottom-gap" height="5" width="100%" style="padding: 0px 3px;"></td>
+                    </tr>
+                    </tbody>
+                    </table>
+
+                    </td>
+                    </tr>
+                    </tbody>
+                    </table>
+                    <table class="image-caption-column" align="right" border="0" cellpadding="0" cellspacing="0" width="160">
+                    <tbody>
+                    <tr>
+                    <td class="image-caption-top-gap" height="15" width="100%" style="padding: 0px 3px;"></td>
+                    </tr>
+                    <tr>
+                    <td class="image-caption-content image" style="font-family: Arial; font-size: 13px; color: rgb(0, 0, 0); padding: 0px 3px;">
+                    <img src="http://ccpl.jankosoftworks.com/drag-drop-editor/images/5dfad1c7a165d7eb6dad76e1b712051a.jpg" alt="" style="display: block; border: none;" height="154px" align="2" border="0" width="160px" id="fff8c335-1da7-4026-a0d0-a5d0a3ab47ef" class="">
+                    </td>
+                    </tr>
+                    <tr>
+                    <td height="15" width="100%" style="padding: 0px 3px;"></td>
+                    </tr>
+                    <tr>
+                    <td class="image-caption-content text" style="font-family: Arial; font-size: 13px; color: rgb(0, 0, 0); line-height: 22px; padding: 0px 3px;" align="left">
+                    <p style="margin: 0px 0px 10px; line-height: 22px; border: none;" class=""></p><div style="text-align: left;"><strong>Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur. Quis aute iure reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</strong></div><p></p>
+                    </td>
+                    </tr>
+                    <tr>
+                    <td height="5" width="100%" style="padding: 0px 3px;"></td>
+                    </tr>
+                    </tbody>
+                    </table>
+                    </td>
+                    </tr>
+                    </tbody>
+                    </table><table class="main" width="640" cellspacing="0" cellpadding="0" border="0" bgcolor="#FFFFFF" align="center" style="background-color: rgb(255, 255, 255); display: table;" data-type="imgtxtincol" id="4ef0ebea-311b-2352-15e3-e37111d06753">
+                    <tbody>
+                    <tr>
+                    <td style="padding: 10px;">
+                    <table class="main" align="center" bgcolor="#FFFFFF" border="0" cellpadding="0" cellspacing="0" width="640" id="4ef0ebea-311b-2352-15e3-e37111d06753" style="display: table;">
+                    <tbody>
+                    <tr>
+                    <td class="image-caption" style="padding: 10px;">
+                    <table class="image-caption-column" align="left" border="0" cellpadding="0" cellspacing="0" width="255">
+                    <tbody>
+                    <tr>
+                    <td height="15" width="100%" style="padding: 10px;"></td>
+                    </tr>
+                    <tr>
+                    <td class="image-caption-content image" style="font-family: Arial; font-size: 13px; color: rgb(0, 0, 0); padding: 10px;">
+                    <img src="http://ccpl.jankosoftworks.com/drag-drop-editor/images/5dfad1c7a165d7eb6dad76e1b712051a.jpg" alt="" style="display: block; border: none;" height="154px" align="2" border="0" width="255px" id="f429c267-ac9d-2be3-9b34-665c52962525" class="">
+                    </td>
+                    </tr>
+                    <tr>
+                    <td height="15" width="100%" style="padding: 10px;"></td>
+                    </tr>
+                    <tr>
+                    <td class="image-caption-content text" style="font-family: Arial; font-size: 13px; color: rgb(0, 0, 0); line-height: 22px; padding: 10px;" align="left">
+                    <p style="margin: 0px 0px 10px; line-height: 22px; border: none;" class=""></p><p class="" style="border: none;">Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur. Quis aute iure reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+<p class="" style="border: none;">sunt in culpa qui officia deserunt mollit anim id est laborum.</p><p></p>
+                    </td>
+                    </tr>
+                    <tr>
+                    <td class="image-caption-bottom-gap" height="5" width="100%" style="padding: 10px;"></td>
+                    </tr>
+                    </tbody>
+                    </table>
+                    <table class="image-caption-column" align="right" border="0" cellpadding="0" cellspacing="0" width="255">
+                    <tbody>
+                    <tr>
+                    <td class="image-caption-top-gap" height="15" width="100%" style="padding: 10px;"></td>
+                    </tr>
+                    <tr>
+                    <td class="image-caption-content image" style="font-family: Arial; font-size: 13px; color: rgb(0, 0, 0); padding: 10px;">
+                    <img src="http://ccpl.jankosoftworks.com/drag-drop-editor/images/unnamed.png" alt="" style="display: block; border: none;" height="154px" align="2" border="0" width="255px" id="38eee77a-bee6-a624-4658-15e8f7853d8a" class="">
+                    </td>
+                    </tr>
+                    <tr>
+                    <td height="15" width="100%" style="padding: 10px;"></td>
+                    </tr>
+                    <tr>
+                    <td class="image-caption-content text" style="font-family: Arial; font-size: 13px; color: rgb(0, 0, 0); line-height: 22px; padding: 10px;" align="left">
+                    <p style="margin: 0px 0px 10px; line-height: 22px; border: none;" class=""></p><p class="" style="border: none;">Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur. Quis aute iure reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+<p class="" style="border: none;">sunt in culpa qui officia deserunt mollit anim id est laborum.</p><p></p>
+                    </td>
+                    </tr>
+                    <tr>
+                    <td height="5" width="100%" style="padding: 10px;"></td>
+                    </tr>
+                    </tbody>
+                    </table>
+                    </td>
+                    </tr>
+                    </tbody>
+                    </table>
+                    </td>
+                    </tr>
+                    </tbody>
+                    </table><table class="main" width="640" cellspacing="0" cellpadding="0" border="0" bgcolor="#FFFFFF" align="center" style="background-color: rgb(255, 255, 255); display: table;" data-type="imgtxtincol" id="052e5b06-ba63-f12c-b076-a7457a6e47cf">
+                    <tbody>
+                    <tr>
+                    <td>
+                    <table class="main" align="center" bgcolor="#FFFFFF" border="0" cellpadding="0" cellspacing="0" width="640" id="052e5b06-ba63-f12c-b076-a7457a6e47cf" style="display: table;">
+                    <tbody>
+                    <tr>
+                    <td class="image-caption" style="padding: 0px 50px 0px 50px;">
+                    <table class="image-caption-column" align="left" border="0" cellpadding="0" cellspacing="0" width="255">
+                    <tbody>
+                    <tr>
+                    <td height="15" width="100%"></td>
+                    </tr>
+                    <tr>
+                    <td class="image-caption-content image" style="font-family: Arial; font-size: 13px; color: #000000;">
+                    <img src="http://ccpl.jankosoftworks.com/drag-drop-editor/images/unnamed.png" alt="" style="display: block; border: none;" height="154px" align="2" border="0" width="255px" id="40d63afe-70dd-11c7-dd68-6b88c04d4bf1" class="">
+                    </td>
+                    </tr>
+                    <tr>
+                    <td height="15" width="100%"></td>
+                    </tr>
+                    <tr>
+                    <td class="image-caption-content text" style="font-family: Arial; font-size: 13px; color: #000000; line-height: 22px;" align="left">
+                    <p style="margin: 0px 0px 10px 0px;        line-height: 22px;"> Lorem ipsum dolor sit amet, consectetur adipisci elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur. Quis aute iure reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint obcaecat cupiditat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. </p>
+                    </td>
+                    </tr>
+                    <tr>
+                    <td class="image-caption-bottom-gap" height="5" width="100%"></td>
+                    </tr>
+                    </tbody>
+                    </table>
+                    <table class="image-caption-column" align="right" border="0" cellpadding="0" cellspacing="0" width="255">
+                    <tbody>
+                    <tr>
+                    <td class="image-caption-top-gap" height="15" width="100%"></td>
+                    </tr>
+                    <tr>
+                    <td class="image-caption-content image" style="font-family: Arial; font-size: 13px; color: #000000;">
+                    <img src="http://ccpl.jankosoftworks.com/drag-drop-editor/images/1_logo.jpg" alt="" style="display: block; border: none;" height="154px" align="2" border="0" width="255px" id="49783933-2905-eb76-1719-33a9a61c6492" class="">
+                    </td>
+                    </tr>
+                    <tr>
+                    <td height="15" width="100%"></td>
+                    </tr>
+                    <tr>
+                    <td class="image-caption-content text" style="font-family: Arial; font-size: 13px; color: #000000; line-height: 22px;" align="left">
+                    <p style="margin: 0px 0px 10px; line-height: 22px; border: none;" class="">Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.<br><br>Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.<br><br><span style="color: #ff9900;">Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.</span><br><br><span style="color: #ff9900;">Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.</span><br><br><span style="color: #ff9900;">Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis.</span><br><br><span style="color: #ff9900;">At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, At accusam aliquyam diam diam dolore dolores duo eirmod eos erat, et nonumy sed tempor et et invidunt justo labore Stet clita ea et gubergren, kasd magna no rebum. sanctus sea sed takimata ut vero voluptua. est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat.</span></p>
+                    </td>
+                    </tr>
+                    <tr>
+                    <td height="5" width="100%"></td>
+                    </tr>
+                    </tbody>
+                    </table>
+                    </td>
+                    </tr>
+                    </tbody>
+                    </table>
+                    </td>
+                    </tr>
+                    </tbody>
+                    </table><table class="main" align="center" width="640" cellspacing="0" cellpadding="0" border="0" style="background-color: rgb(255, 255, 255); display: table;" data-type="social-links" id="3bf6b0f5-e53e-60a7-dfa4-a609c971cdb4">
+                    <tbody>
+                    <tr>
+                    <td class="social" align="center" style="padding: 15px 50px 15px 50px;">
+                    <a href="#" style="border: none;" class="facebook">
+                    <img border="0" src="http://ccpl.jankosoftworks.com/drag-drop-editor/img/builder/facebook.png">
+
+                    </a>
+                    <a href="#" style="border: none;" class="twitter">
+
+                    <img border="0" src="http://ccpl.jankosoftworks.com/drag-drop-editor/img/builder/twitter.png">
+
+
+                    </a>
+                    <a href="#" style="border: none;" class="linkedin">
+
+                    <img border="0" src="http://ccpl.jankosoftworks.com/drag-drop-editor/img/builder/linkedin.png">
+
+
+                    </a>
+                    <a href="#" style="border: none;" class="youtube">
+
+                    <img border="0" src="http://ccpl.jankosoftworks.com/drag-drop-editor/img/builder/youtube.png">
+
+
+                    </a>
+                    </td>
+                    </tr>
+                    </tbody>
+                    </table><table width="640" class="preheader" align="center" cellspacing="0" cellpadding="0" border="0">
+					<tbody><tr>
+					<td align="left" class="preheader-text" width="420" style="padding: 15px 0px; font-family: Arial; font-size: 11px; color: #666666"></td>
+					<td class="preheader-gap" width="20"></td>
+					<td class="preheader-link" align="right" width="200" style="padding: 15px 0px; font-family: Arial; font-size: 11px; color: #666666"></td>
+					</tr>
+					</tbody></table></td>
+                    </tr>
+                    </tbody></table>
+</body>
+</html>
