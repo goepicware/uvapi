@@ -24,7 +24,7 @@ class Orders extends REST_Controller
 		$this->promotion_history = "promotion_history";
 		$this->order_outlet = "order_outlet";
 		$this->load->library('form_validation');
-		$this->load->helper('order');
+		$this->load->helper(array('order', 'stock'));
 	}
 
 	public function placeorder_post()
@@ -32,11 +32,11 @@ class Orders extends REST_Controller
 		$unquieid = post_value('unquieid');
 		$company = app_validation(post_value('unquieid'));
 		$company_id = $company['company_id'];
-		$this->form_validation->set_rules('customerID', 'lang:rest_customer_id', 'required');
+		$this->form_validation->set_rules('customerID', 'lang:rest_customer_id', 'required|callback_validate_customer');
 		$this->form_validation->set_rules('subTotal', 'lang:rest_sub_total', 'required');
 		$this->form_validation->set_rules('grandTotal', 'lang:rest_grand_total', 'required');
 		$this->form_validation->set_rules('availabilityID', 'lang:rest_availability_id', 'required');
-		$this->form_validation->set_rules('products', 'lang:rest_products', 'required');
+		//$this->form_validation->set_rules('products', 'lang:rest_products', 'required');
 		$this->form_validation->set_rules('locationID', 'lang:location_id', 'required');
 		if ($this->form_validation->run() == TRUE) {
 			$customerID = decode_value(post_value('customerID'));
@@ -52,87 +52,109 @@ class Orders extends REST_Controller
 			$startTime = post_value('startTime');
 			$endTime = post_value('endTime');
 			$orderSource = post_value('orderSource');
-
-			$company_array = array(
-				'order_company_unique_id' => $unquieid
-			);
-
-			$order_id = get_guid($this->table, 'order_id', $company_array);
-			$local_order_no = get_local_ordeno($unquieid, $orderSource);
 			$products = $this->object_to_array(json_decode($this->input->post('products')));
-			$totalDiscount = post_value('totalDiscount');
-			$discountType = post_value('discountType');
-			$totalItem = post_value('totalItem');
-
-			$data = array(
-				'order_company_id' => $company_id,
-				'order_company_unique_id' => $unquieid,
-				'order_id' => $order_id,
-				'order_location_id' => $locationID,
-				'order_local_no' => $local_order_no,
-				'order_delivery_charge' => post_value('deliveryCharge'),
-				'order_additional_delivery' => post_value('additionalDeliveryCharge'),
-				'order_tax_charge' => post_value('taxCharge'),
-				'order_tax_calculate_amount' =>  post_value('taxAmount'),
-				'order_tax_charge_inclusive' => '',
-				'order_tax_calculate_amount_inclusive' => '',
-				'order_sub_total' =>  post_value('subTotal'),
-				'order_total_amount' => post_value('grandTotal'),
-				'order_date' => $orderDate,
-				'order_status' => 1,
-				'order_availability_id' => $availabilityID,
-				'order_availability_name' => $availabilityName,
-				'order_pickup_time_slot_from' => (!empty($startTime)) ? $startTime : '',
-				'order_pickup_time_slot_to' => (!empty($endTime)) ? $endTime : '',
-				'order_source' => post_value('orderSource'),
-				'order_payment_getway_type' => post_value('paymentGetway'),
-				'order_payment_mode' => post_value('paymentMethod'),
-				'order_payment_getway_status' => ucwords(post_value('paymentStatus')),
-				'order_zone_id' => $zoneID,
-				'order_discount_applied' => (!empty($discountType)) ? 'Yes' : 'No',
-				'order_discount_type' => (!empty($discountType)) ? $discountType : '',
-				'order_discount_amount' => ($totalDiscount > 0) ? $totalDiscount : '',
-				'order_created_on' => current_date(),
-			);
-			$order_primary_id = $this->Mydb->insert($this->table, $data);
-			if (!empty($order_primary_id)) {
-				$this->createOrderCustomer($order_primary_id, $order_id, $customerID);
-				$this->createItems($order_primary_id, $order_id, $products);
-				$this->createOrderOutlet($company_id, $unquieid, $order_primary_id,  $products);
-				$discountDetails = (!empty($this->input->post('discountDetails'))) ? $this->object_to_array(json_decode($this->input->post('discountDetails'))) : [];
-				if (!empty($discountDetails)) {
-					$this->createPromotion($unquieid, $company_id, $customerID, $totalItem, post_value('subTotal'), $order_primary_id, $order_id, $discountDetails);
+			$validateOrder = post_value('validateOrder');
+			$error = 0;
+			if (!empty($validateOrder)) {
+				$validateItem = $this->validateItem($products, $customerID, $unquieid);
+				if ($validateItem['validate'] == 'error') {
+					$this->response(array(
+						'status' => 'error',
+						'message' => $validateItem['message'],
+					), something_wrong());
+					$error++;
+					exit;
 				}
-				$paymentReferenceID = post_value('paymentReferenceID');
-				if (!empty($paymentReferenceID)) {
-					$this->Mydb->update($this->uv_payment, array('payment_order_id' => $paymentReferenceID), array('order_primary_id' => $order_primary_id));
+				if ($error == 0) {
+					$this->set_response(array(
+						'status' => "ok",
+						'validate' => 'success'
+					), success_response());
 				}
-				$emailArray = array(
-					'email_order_id' => $order_primary_id,
-					'email_company_id' => $company_id,
-					'email_company_unique_id' => $unquieid,
-					'email_created_on' => current_date(),
-					'email_status' => 'Pending'
+			}
+
+			if ($validateOrder == "No") {
+				$company_array = array(
+					'order_company_unique_id' => $unquieid
 				);
-				$this->Mydb->insert('email_notification', $emailArray);
+
+				$order_id = get_guid($this->table, 'order_id', $company_array);
+				$local_order_no = get_local_ordeno($unquieid, $orderSource);
+
+				$totalDiscount = post_value('totalDiscount');
+				$discountType = post_value('discountType');
+				$totalItem = post_value('totalItem');
+
+				$data = array(
+					'order_company_id' => $company_id,
+					'order_company_unique_id' => $unquieid,
+					'order_id' => $order_id,
+					'order_location_id' => $locationID,
+					'order_local_no' => $local_order_no,
+					'order_delivery_charge' => post_value('deliveryCharge'),
+					'order_additional_delivery' => post_value('additionalDeliveryCharge'),
+					'order_tax_charge' => post_value('taxCharge'),
+					'order_tax_calculate_amount' =>  post_value('taxAmount'),
+					'order_tax_charge_inclusive' => '',
+					'order_tax_calculate_amount_inclusive' => '',
+					'order_sub_total' =>  post_value('subTotal'),
+					'order_total_amount' => post_value('grandTotal'),
+					'order_date' => $orderDate,
+					'order_status' => 1,
+					'order_availability_id' => $availabilityID,
+					'order_availability_name' => $availabilityName,
+					'order_pickup_time_slot_from' => (!empty($startTime)) ? $startTime : '',
+					'order_pickup_time_slot_to' => (!empty($endTime)) ? $endTime : '',
+					'order_source' => post_value('orderSource'),
+					'order_payment_getway_type' => post_value('paymentGetway'),
+					'order_payment_mode' => post_value('paymentMethod'),
+					'order_payment_getway_status' => ucwords(post_value('paymentStatus')),
+					'order_zone_id' => $zoneID,
+					'order_discount_applied' => (!empty($discountType)) ? 'Yes' : 'No',
+					'order_discount_type' => (!empty($discountType)) ? $discountType : '',
+					'order_discount_amount' => ($totalDiscount > 0) ? $totalDiscount : '',
+					'order_created_on' => current_date(),
+				);
+				$order_primary_id = $this->Mydb->insert($this->table, $data);
+				if (!empty($order_primary_id)) {
+					$this->createOrderCustomer($order_primary_id, $order_id, $customerID);
+					$this->createItems($unquieid, $order_primary_id, $order_id, $products);
+					$this->createOrderOutlet($company_id, $unquieid, $order_primary_id,  $products);
+					$discountDetails = (!empty($this->input->post('discountDetails'))) ? $this->object_to_array(json_decode($this->input->post('discountDetails'))) : [];
+					if (!empty($discountDetails)) {
+						$this->createPromotion($unquieid, $company_id, $customerID, $totalItem, post_value('subTotal'), $order_primary_id, $order_id, $discountDetails);
+					}
+					$paymentReferenceID = post_value('paymentReferenceID');
+					if (!empty($paymentReferenceID)) {
+						$this->Mydb->update($this->uv_payment, array('payment_order_id' => $paymentReferenceID), array('order_primary_id' => $order_primary_id));
+					}
+					$emailArray = array(
+						'email_order_id' => $order_primary_id,
+						'email_company_id' => $company_id,
+						'email_company_unique_id' => $unquieid,
+						'email_created_on' => current_date(),
+						'email_status' => 'Pending'
+					);
+					$this->Mydb->insert('email_notification', $emailArray);
 
 
-				$return_array = array(
-					'status' => "ok",
-					'message' => get_label('rest_order_success'),
-					'result' => array(
-						'order_id' => $order_id,
-						'local_order_no' => $local_order_no,
-						'order_primary_id' => $order_primary_id
-					)
-				);
-				$this->set_response($return_array, success_response());
-			} else {
-				$this->set_response(array(
-					'status' => 'error',
-					'message' => get_label('order_creation_error'),
-					'form_error' => validation_errors()
-				), something_wrong()); /* error message */
+					$return_array = array(
+						'status' => "ok",
+						'message' => get_label('rest_order_success'),
+						'result' => array(
+							'order_id' => $order_id,
+							'local_order_no' => $local_order_no,
+							'order_primary_id' => $order_primary_id
+						)
+					);
+					$this->set_response($return_array, success_response());
+				} else {
+					$this->set_response(array(
+						'status' => 'error',
+						'message' => get_label('order_creation_error'),
+						'form_error' => validation_errors()
+					), something_wrong()); /* error message */
+				}
 			}
 		} else {
 			$this->set_response(array(
@@ -558,7 +580,7 @@ class Orders extends REST_Controller
 
 
 
-	private function createItems($order_primary_id, $order_id, $products)
+	private function createItems($unquieid, $order_primary_id, $order_id, $products)
 	{
 		if (!empty($products)) {
 			foreach ($products as $item) {
@@ -581,13 +603,14 @@ class Orders extends REST_Controller
 				$itemID = $this->Mydb->insert($this->orderitems, $data);
 				$comobSet = (!empty($item['comobSet'])) ? $item['comobSet'] : [];
 				if (!empty($comobSet)) {
-					$this->createComobSet($order_primary_id, $order_id, $itemID, $comobSet);
+					$this->createComobSet($unquieid, $order_primary_id, $order_id, $itemID, $comobSet);
+					updateStock($unquieid, $item['productID'], $item['itemQuantity'], 'D', 'S');
 				}
 			}
 		}
 	}
 
-	private function createComobSet($order_primary_id, $order_id, $itemID, $comobSet)
+	private function createComobSet($unquieid, $order_primary_id, $order_id, $itemID, $comobSet)
 	{
 		if (!empty($comobSet)) {
 			foreach ($comobSet as $combo) {
@@ -607,6 +630,7 @@ class Orders extends REST_Controller
 							'menu_created_on' => current_date(),
 						);
 						$this->Mydb->insert($this->combotable, $comboItem);
+						updateStock($unquieid, $product['productID'], $product['quantity'], 'D', 'S');
 					}
 				}
 			}
@@ -634,20 +658,111 @@ class Orders extends REST_Controller
 					'promotion_history_created_ip' => get_ip(),
 				);
 				$this->Mydb->insert($this->promotion_history, $promoItem);
-				echo $this->db->last_query();
 			}
 		}
 	}
 
+	public function validate_customer()
+	{
+		$customerID = decode_value(post_value('customerID'));
+		if (!empty($customerID)) {
+			$unquieid = post_value('unquieid');
+			$checkingCustomer = $this->Mydb->get_record('customer_id', 'customers', array('customer_id' => $customerID, 'customer_unquie_app_id' => $unquieid));
+			if (empty($checkingCustomer)) {
+				$this->form_validation->set_message('validate_customer', get_label('upload_valid_csv_file'));
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private function validateItem($cartItem, $customerID, $unquieid)
+	{
+		$response = array('validate' => 'ok', 'message' => '');
+		if (!empty($cartItem)) {
+			$cart_Item = array_combine(array_column($cartItem, 'itemID'), $cartItem);
+			$join = array();
+			$i = 0;
+			$join[$i]['select']    = 'cart_item_product_id, cart_item_id, cart_item_product_name, cart_item_qty, cart_item_unit_price, cart_item_total_price';
+			$join[$i]['condition'] = "cart_id = cart_item_cart_id";
+			$join[$i]['table']     = 'cart_items';
+			$join[$i]['type']      = "INNER";
+			$i++;
+			$storedcartItem = $this->Mydb->get_all_records('cart_id',  'cart_details', array('cart_company_unquie_id' => $unquieid, 'cart_customer_id' => $customerID), '', '', '', '', '', $join);
+			$errorMag = "";
+			if (count($storedcartItem) != count($cart_Item)) {
+				$errorMag =  'Cart item mismatch<br/>';
+			}
+			$subTotal = 0;
+			if (empty($errorMag)) {
+				foreach ($storedcartItem as $val) {
+					if (!empty($cart_Item[$val['cart_item_id']])) {
+						if ($cart_Item[$val['cart_item_id']]['itemQuantity'] != $val['cart_item_qty']) {
+							$errorMag .= $val['cart_item_product_name'] . ' Quantity Mismatched<br/>';
+						}
+						if ($cart_Item[$val['cart_item_id']]['itemPrice'] != $val['cart_item_unit_price']) {
+							$errorMag .= $val['cart_item_product_name'] . ' Price Mismatched<br/>';
+						}
+						if ($cart_Item[$val['cart_item_id']]['itemTotalPrice'] != $val['cart_item_total_price']) {
+							$errorMag .= $val['cart_item_product_name'] . ' Total Mismatched<br/>';
+						}
+					} else {
+						$errorMag .= $val['cart_item_product_name'] . 'missing<br/>';
+					}
+					$subTotal += $val['cart_item_total_price'];
+				}
+			}
+			foreach ($cartItem as $val) {
+				$products = $this->Mydb->get_record('product_primary_id, product_stock, product_status', 'products', array('product_company_unique_id' => $unquieid, 'product_id' => $val['productID']));
+				if (!empty($products)) {
+					if ($products['product_status'] != 'A') {
+						$errorMag .= $val['itemName'] . ' is disabled<br/>';
+					} else {
+						if ($products['product_stock'] >= $val['product_stock']) {
+							$errorMag .= $val['itemName'] . ' stock not available<br/>';
+						}
+					}
+				} else {
+					$errorMag .= $val['itemName'] . ' invalid product<br/>';
+				}
+			}
+
+			$postSubTotal = post_value('subTotal');
+			if (empty($errorMag)) {
+				if ($subTotal != $postSubTotal) {
+					$errorMag .= 'Subtotal is wrong<br/>';
+				}
+			}
+			if (empty($errorMag)) {
+				$postDelivery = post_value('deliveryCharge');
+				$posgrandTotal = post_value('grandTotal');
+				$grandTotal = (float)$subTotal +  (float)$postDelivery;
+
+				if ($grandTotal != $posgrandTotal) {
+					$errorMag .= 'Grandtotal is wrong<br/>';
+				}
+			}
+			if (!empty($errorMag)) {
+				$response['validate'] = 'error';
+				$response['message'] = $errorMag;
+			}
+		} else {
+			$response['validate'] = 'error';
+			$response['message'] = 'Not allow to empty item';
+		}
+		return $response;
+	}
 	private function object_to_array($data)
 	{
-		if (is_array($data) || is_object($data)) {
-			$result = array();
-			foreach ($data as $key => $value) {
-				$result[$key] = $this->object_to_array($value);
+		if (!empty($data)) {
+			if (is_array($data) || is_object($data)) {
+				$result = array();
+				foreach ($data as $key => $value) {
+					$result[$key] = $this->object_to_array($value);
+				}
+				return $result;
 			}
-			return $result;
+			return $data;
 		}
-		return $data;
 	}
 }

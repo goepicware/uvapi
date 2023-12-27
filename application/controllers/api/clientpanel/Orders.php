@@ -83,6 +83,7 @@ class Orders extends REST_Controller
 					$searchkeyword = $this->input->get('searchkeyword');
 					$orderstatus = $this->input->get('orderstatus');
 					$dateoption = $this->input->get('dateoption');
+					$dateoption = (!empty($dateoption)) ? $dateoption : '1';
 					$start_date = $this->input->get('start_date');
 					$end_date = $this->input->get('end_date');
 					if ((int) $get_limit != 0) {
@@ -180,7 +181,6 @@ class Orders extends REST_Controller
 					$totalPages = (!empty($limit)) ? ceil($total_records / $limit) : 0;
 
 					$result = $this->Mydb->get_all_records($select_array, $this->table, $where, $limit, $offset, $orderByArr, $like, array('order_primary_id'), $join);
-
 					if (!empty($result)) {
 						$outlet = $this->Mydb->get_all_records('outlet_id, outlet_name', $this->outlet_management, array('outlet_company_id' => $company_id));
 						$outlet_id = array_column($outlet, 'outlet_id');

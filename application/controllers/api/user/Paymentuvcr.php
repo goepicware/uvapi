@@ -60,6 +60,7 @@ class Paymentuvcr extends REST_Controller
 		$this->form_validation->set_rules('siteURL', 'lang:res_site_url', 'required');
 		if ($this->form_validation->run() == TRUE) {
 			$siteURL = post_value('siteURL');
+			$failedURL = post_value('failedURL');
 			$customerID = decode_value(post_value('customerID'));
 			$orderID = 'PUV-' . $customerID . '-' . time();
 			$grandTotal = post_value('grandTotal');
@@ -89,6 +90,7 @@ class Paymentuvcr extends REST_Controller
 				$paymentRequest = array(
 					"callback_url" => base_url('api/user/paymentuvcr/response'),
 					"return_url" => $siteURL, //required
+					'return_url_failed' => $failedURL, //required
 					"order_id" => $orderID, //required
 					"amount" => $amount, //required
 					"payment_method" => array(
