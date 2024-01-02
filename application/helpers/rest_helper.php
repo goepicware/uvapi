@@ -590,7 +590,7 @@ if (!function_exists('rest_product_stock_log')) {
 			$record = $CI->Mydb->get_record('product_stock', $table, array(
 				'product_id' => $id,
 				'product_company_id' => $company['company_id'],
-				'product_company_app_id' => $company['company_unquie_id']
+				'product_company_unique_id' => $company['company_unquie_id']
 			));
 			if (!empty($type)) {
 				$stock_val = $record['product_stock'] + $stock;

@@ -54,6 +54,7 @@ class Orders extends REST_Controller
 			$orderSource = post_value('orderSource');
 			$products = $this->object_to_array(json_decode($this->input->post('products')));
 			$validateOrder = post_value('validateOrder');
+			$validateOrder = "No";
 			$error = 0;
 			if (!empty($validateOrder)) {
 				$validateItem = $this->validateItem($products, $customerID, $unquieid);
@@ -173,9 +174,9 @@ class Orders extends REST_Controller
 
 		$where = "order_company_unique_id='" . $unquieid . "' AND order_customer_id='" . $customerID . "'";
 		if (!empty($orderType)) {
-			if ($orderType == "Ongoing") {
+			if ($orderType == "on-process") {
 				$where .= " AND  order_status!='4' AND order_status!='5'";
-			} else if ($orderType == "Ongoing") {
+			} else if ($orderType == "on-process") {
 				$where .= " AND  (order_status='1' OR order_status='2' OR order_status='3')";
 			} else if ($orderType == "completed") {
 				$where .= " AND  order_status='4'";
@@ -625,7 +626,7 @@ class Orders extends REST_Controller
 							'menu_product_id' => $product['productID'],
 							'menu_product_name' => $product['productName'],
 							'menu_product_sku' => $product['productSKU'],
-							'menu_product_qty' => $product['quantity'],
+							'menu_product_qty' => (!empty($product['quantity'])) ? $product['quantity'] : 1,
 							'menu_product_price' => $product['productPrice'],
 							'menu_created_on' => current_date(),
 						);

@@ -769,7 +769,7 @@ class Products extends REST_Controller
 			'product_tag_info'		=> post_value('tag_info'),
 			'product_stock' 		=> post_value('stock'),
 			'product_stock_min' 	=> post_value('stock_min'),
-			'product_stock_alert' 	=> post_value('low_stock_alert'),
+			'product_stock_alert' 	=> (post_value('low_stock_alert') != "") ? post_value('low_stock_alert') : 0,
 			'product_parent_primary_id'			=> (!empty($parantProduct)) ? $parantProduct[0] : "",
 			'product_parent_id'		=> (!empty($parantProduct)) ? $parantProduct[1] : "",
 			'product_category_id'	=> (!empty($category)) ? $category[0] : "",
@@ -810,6 +810,7 @@ class Products extends REST_Controller
 			'product_availability_errorinfo' => post_value('availability_errorinfo'),
 			'product_recommendation' => post_value('recommendation'),
 		);
+
 		$company_id = decode_value($this->input->post('company_id'));
 		$company_admin_id = decode_value($this->input->post('company_admin_id'));
 		$getCompanyDetails = getCompanyUniqueID($company_id);
@@ -856,6 +857,15 @@ class Products extends REST_Controller
 					'product_updated_ip'	=> get_ip()
 				)
 			);
+			if (post_value('stock_min') != "") {
+				if (post_value('stock') > post_value('stock_min')) {
+					$data = array_merge(
+						$data,
+						array('product_stock_alert_email_status' => '')
+					);
+				}
+			}
+
 			$this->Mydb->update($this->table, array($this->primary_key => $edit_id), $data);
 		}
 		if (!empty($edit_id)) {
