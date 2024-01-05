@@ -56,7 +56,7 @@ class Orders extends REST_Controller
 			$validateOrder = post_value('validateOrder');
 			$validateOrder = "No";
 			$error = 0;
-			if (!empty($validateOrder)) {
+			/* if (!empty($validateOrder)) {
 				$validateItem = $this->validateItem($products, $customerID, $unquieid);
 				if ($validateItem['validate'] == 'error') {
 					$this->response(array(
@@ -72,7 +72,7 @@ class Orders extends REST_Controller
 						'validate' => 'success'
 					), success_response());
 				}
-			}
+			} */
 
 			if ($validateOrder == "No") {
 				$company_array = array(
@@ -176,7 +176,7 @@ class Orders extends REST_Controller
 		if (!empty($orderType)) {
 			if ($orderType == "on-process") {
 				$where .= " AND  order_status!='4' AND order_status!='5'";
-			} else if ($orderType == "on-process") {
+			} else if ($orderType == "Ongoing") {
 				$where .= " AND  (order_status='1' OR order_status='2' OR order_status='3')";
 			} else if ($orderType == "completed") {
 				$where .= " AND  order_status='4'";
@@ -531,14 +531,141 @@ class Orders extends REST_Controller
 		}
 	}
 
+	public function orderAgain_post()
+	{
+		$unquieid = post_value('unquieid');
+		$company = app_validation($unquieid);
+		$this->form_validation->set_rules('customerID', 'lang:rest_customer_id', 'required|callback_validate_customer');
+		$this->form_validation->set_rules('orderID', 'lang:bp_order_primary_id_req', 'required');
+		if ($this->form_validation->run() == TRUE) {
+			$customerID = decode_value(post_value('customerID'));
+			$orderID = decode_value(post_value('orderID'));
+			$orderDetails = $this->Mydb->get_record('*', $this->table, array('order_primary_id' => $orderID));
+			if (!empty($orderDetails)) {
+				$itemWhere = array('item_order_primary_id' => $orderID);
+
+				$selectItemValues = array(
+					"item_outlet_id",
+					'item_id',
+					'item_order_primary_id',
+					'item_product_id',
+					'item_voucher_id',
+					'item_name',
+					'item_sku',
+					'item_qty',
+					'item_unit_price',
+					'item_total_amount',
+					'item_specification',
+					'item_image',
+				);
+				$orderItem = $this->Mydb->get_all_records($selectItemValues, $this->orderitems, $itemWhere);
+				$finalorderItem = [];
+				if (!empty($orderItem)) {
+					$item_id = array_unique(array_column($orderItem, 'item_id'));
+
+					$comobWhere = "menu_item_id IN (" . implode(',', $item_id) . ")";
+					$combomenuItem = $this->Mydb->get_all_records('menu_item_id, menu_menu_component_id, menu_menu_component_name,menu_product_id,  menu_product_name, menu_product_sku, menu_product_qty, menu_product_price, menu_custom_logo, menu_custom_text,menu_menu_component_min_max_appy, menu_kitchen_status, menu_product_extra_qty, menu_product_extra_price', $this->combotable, $comobWhere);
+					$finalcombomenuItem = [];
+					if (!empty($combomenuItem)) {
+						foreach ($combomenuItem as $val) {
+							$finalcombomenuItem[$val['menu_item_id']][$val['menu_menu_component_id']]['component_id'] = $val['menu_menu_component_id'];
+							$finalcombomenuItem[$val['menu_item_id']][$val['menu_menu_component_id']]['component_name'] = $val['menu_menu_component_name'];
+							$finalcombomenuItem[$val['menu_item_id']][$val['menu_menu_component_id']]['component_item'][] = $val;
+						}
+					}
+				}
+				foreach ($orderItem as $val) {
+					$finalorderItem[$val['item_id']] = $val;
+					$finalorderItem[$val['item_id']]['comboSet'] = (!empty($finalcombomenuItem[$val['item_id']])) ? $finalcombomenuItem[$val['item_id']] : [];
+				}
+
+				if (!empty($finalorderItem)) {
+					$data = array(
+						'cart_company_unquie_id' => $unquieid,
+						'cart_customer_id' => $customerID,
+						'cart_shop_type' => 1,
+						'cart_location_id' => $orderDetails['order_location_id'],
+						'cart_total_items' => count($finalorderItem),
+						'cart_sub_total' => $orderDetails['order_sub_total'],
+						'cart_grand_total' => $orderDetails['order_sub_total'],
+						'cart_availability_id' => $orderDetails['order_availability_id'],
+						'cart_availability_name' =>  $orderDetails['order_availability_name'],
+						'cart_created_on' => current_date(),
+						'cart_created_ip' => get_ip(),
+						'cart_source' =>  'Web',
+					);
+					$cartID = $this->Mydb->insert('cart_details', $data);
+					foreach ($finalorderItem as $val) {
+						$productType = (!empty($val['comboSet'])) ? 'Combo' : 'Simple';
+						$itemdata = array(
+							'cart_item_availability_id' => $orderDetails['order_availability_id'],
+							'cart_item_location_id' => $orderDetails['order_location_id'],
+							'cart_item_outlet' => $val['item_outlet_id'],
+							'cart_item_customer_id' => $customerID,
+							'cart_item_cart_id' => $cartID,
+							'cart_item_product_id' => $val['item_product_id'],
+							'cart_item_product_name' => $val['item_name'],
+							'cart_item_product_sku' => $val['item_sku'],
+							'cart_item_product_image' =>  $val['item_image'],
+							'cart_item_qty' =>  $val['item_qty'],
+							'cart_item_unit_price' =>  $val['item_unit_price'],
+							'cart_item_total_price' =>  $val['item_total_amount'],
+							'cart_item_type' =>  $productType,
+							'cart_item_special_notes' =>  $val['item_specification'],
+							'cart_item_created_on' =>   current_date(),
+						);
+						$cart_item_id = $this->Mydb->insert('cart_items', $itemdata);
+						if (!empty($cart_item_id) && !empty($val['comboSet'])) {
+							foreach ($val['comboSet'] as $combo) {
+								if (!empty($combo['component_item'])) {
+									foreach ($combo['component_item'] as $comobItem) {
+										$comboitemdata = array(
+											'cart_menu_component_cart_id' => $cartID,
+											'cart_menu_component_cart_item_id' => $cart_item_id,
+											'cart_menu_component_id' => $combo['component_id'],
+											'cart_menu_component_name' => $combo['component_name'],
+											'cart_menu_component_product_id' => $comobItem['menu_product_id'],
+											'cart_menu_component_product_name' => $comobItem['menu_product_name'],
+											'cart_menu_component_product_sku' => $comobItem['menu_product_sku'],
+											'cart_menu_component_product_qty' => $comobItem['menu_product_qty'],
+											'cart_menu_component_product_price' =>  $comobItem['menu_product_price'],
+											'cart_menu_component_min_max_appy' =>  $comobItem['menu_menu_component_min_max_appy']
+										);
+										$this->Mydb->insert('cart_menu_set_components', $comboitemdata);
+									}
+								}
+							}
+						}
+					}
+				}
+				$this->response(array(
+					'status' => 'ok',
+					'message' => get_label('rest_product_added')
+				), success_response());
+			} else {
+				$this->set_response(array(
+					'status' => 'error',
+					'message' => get_label('bp_order_invalid'),
+				), something_wrong()); /* error message */
+			}
+		} else {
+			$this->set_response(array(
+				'status' => 'error',
+				'message' => get_label('rest_form_error'),
+				'form_error' => validation_errors()
+			), something_wrong()); /* error message */
+		}
+	}
+
 	private function createOrderCustomer($order_primary_id, $order_id, $customerID)
 	{
-
+		/* print '<pre>';
+		print_r($_POST); */
 		$data = array(
 			'order_customer_order_primary_id' => $order_primary_id,
 			'order_customer_order_id' => $order_id,
 			'order_customer_id' => $customerID,
-			'order_customer_fname' => post_value('fitstName'),
+			'order_customer_fname' => post_value('firstName'),
 			'order_customer_lname' => post_value('lastName'),
 			'order_customer_email' => post_value('email'),
 			'order_customer_mobile_no' => post_value('phone'),

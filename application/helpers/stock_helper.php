@@ -15,7 +15,7 @@ if (!function_exists('updateStock')) {
 	function updateStock($unquieid, $productID, $stock, $type, $stockType)
 	{
 		$CI = &get_instance();
-		$products = $this->Mydb->get_record('product_primary_id, product_company_id,  product_stock', 'products', array('product_company_unique_id' => $unquieid, 'product_id' => $$productID));
+		$products = $CI->Mydb->get_record('product_primary_id, product_company_id,  product_stock', 'products', array('product_company_unique_id' => $unquieid, 'product_id' => $$productID));
 		if (!empty($products)) {
 			$existStock = $products['product_stock'];
 			$updateStock = $existStock;

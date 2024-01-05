@@ -98,6 +98,8 @@ class Catalogs extends REST_Controller
 			$where = array_merge($where, array('pro_subcate_slug' => $subcateSlug));
 		}
 
+		$orderDate = date('Y-m-d');
+
 		$join = array();
 		$i = 0;
 		$join[$i]['select']    = "";
@@ -118,8 +120,16 @@ class Catalogs extends REST_Controller
 		$join[$i]['type']      = "INNER";
 		$i++;
 
-		$products = $this->Mydb->get_all_records('product_id, product_slug, product_type, product_name, product_alias, product_sku, product_short_description, product_minimum_quantity, product_maximum_quantity, product_thumbnail, product_cost, product_price', $this->products, $where, '', '', '', '', '', $join);
+		$products = $this->Mydb->get_all_records('product_id, product_slug, product_type, product_name, product_alias, product_sku, product_short_description, product_minimum_quantity, product_maximum_quantity, product_thumbnail, product_cost, product_price, product_special_price, product_special_price_from_date, product_special_price_to_date', $this->products, $where, '', '', '', '', '', $join);
 		if (!empty($products)) {
+			foreach ($products as $key => $val) {
+				$products[$key]['specialPriceApplicable'] = "No";
+				if (!empty($val['product_special_price']) && $val['product_special_price'] > 0 && !empty($val['product_special_price_from_date']) && !empty($val['product_special_price_to_date'])) {
+					if ($val['product_special_price_from_date'] <= $orderDate  && $val['product_special_price_to_date'] >= $orderDate) {
+						$products[$key]['specialPriceApplicable'] = "Yes";
+					}
+				}
+			}
 			$return_array = array(
 				'status' => "ok",
 				'result' => $products
@@ -235,10 +245,18 @@ class Catalogs extends REST_Controller
 		$join[$i]['type']      = "INNER";
 		$i++;
 
-		$products = $this->Mydb->get_all_records('product_primary_id, product_id, product_slug, product_type, product_name, product_alias, product_sku, product_short_description AS short_description, product_long_description AS long_description, product_minimum_quantity, product_maximum_quantity, product_thumbnail, product_gallery,  product_cost, product_price, product_apply_minmax_select, product_special_price', $this->products, $where, '', '', '', '', '', $join);
+		$products = $this->Mydb->get_all_records('product_primary_id, product_id, product_slug, product_type, product_name, product_alias, product_sku, product_short_description AS short_description, product_long_description AS long_description, product_minimum_quantity, product_maximum_quantity, product_thumbnail, product_gallery,  product_cost, product_price, product_apply_minmax_select, product_special_price, product_special_price_from_date, product_special_price_to_date', $this->products, $where, '', '', '', '', '', $join);
 		if (!empty($products)) {
 			$result = $products[0];
-			$result['product_specialprice_applicable'] = "no";
+			$orderDate = date('Y-m-d');
+			$result['specialPriceApplicable'] = "No";
+			if (!empty($result['product_special_price']) && $result['product_special_price'] > 0 && !empty($result['product_special_price_from_date']) && !empty($result['product_special_price_to_date'])) {
+				if ($result['product_special_price_from_date'] <= $orderDate  && $result['product_special_price_to_date'] >= $orderDate) {
+					$result['specialPriceApplicable'] = "Yes";
+				}
+			}
+			unset($result['product_special_price_from_date']);
+			unset($result['product_special_price_to_date']);
 			$result['comobset'] = array();
 			if ($result['product_type'] == "2") {
 				$combo_products = $this->Mydb->get_all_records('combo_id, combo_name, combo_max_select AS max_select, combo_min_select AS min_select, combo_sort_order AS sequence, combo_price_apply AS apply_price, combo_modifier_apply AS apply_modifier, combo_disable_validation AS disable_validation, combo_pieces_count AS piecescount, single_selection AS single_selection, combo_multipleselection_apply AS multipleselection_apply', $this->product_combos, array('combo_product_primary_id' => $result['product_primary_id']));

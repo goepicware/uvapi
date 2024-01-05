@@ -1025,7 +1025,7 @@ $config['csrf_exclude_uris'] = array(
 	'api/clientpanel/outletzone/action',
 	'api/clientpanel/outletzone/delete',
 	'api/clientpanel/outletzone/addmapdata',
-	
+
 
 	'api/clientpanel/category/add',
 	'api/clientpanel/category/update',
@@ -1172,6 +1172,7 @@ $config['csrf_exclude_uris'] = array(
 	'api/user/paymentuvcr/checkPaymentStatus',
 
 	'api/user/coupon/applyPromo',
+	'api/user/orders/orderAgain',
 );
 
 /*

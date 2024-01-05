@@ -20,10 +20,20 @@ class Deliverypartners extends REST_Controller
 			'form_validation',
 		));
 		$this->form_validation->set_error_delimiters('<p>', '</p>');
-		$this->APIURL = "https://delivery-partners-integrator-sandbox-adchrwkija-uc.a.run.app/v1/";
+		/* $this->APIURL = "https://delivery-partners-integrator-sandbox-adchrwkija-uc.a.run.app/v1/";
 		$this->token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InRva2VuIjp7ImNhdGVnb3J5IjoiU0VDUkVUIiwiZW52IjoiU0FOREJPWCIsInByZW1pdW1BY2Nlc3MiOnt9fSwidXNlciI6eyJjbGllbnRJZCI6IldFZXYwanlNSnhMWThkMmo3djkwIiwidXNlcklkIjoiSllvZnMwUHR4NHE2ak5aeDBrTHQiLCJlbWFpbCI6InRkYXJ0Z2FsbGVyeUBtYWlsLmNvbSIsInJvbGUiOiJPV05FUiIsInR5cGUiOiJDTElFTlQifX0sInR5cGUiOiJBQ0NFU1MiLCJpYXQiOjE2NjE3NzkzNzB9.iPCjrYBWFEL3Llvpv7xxf0GlIxufGMOsWqiFwO9MC8A";
+
+		$this->tokenSubmit = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InRva2VuIjp7ImNhdGVnb3J5IjoiU0VDUkVUIiwiZW52IjoiU0FOREJPWCIsInByZW1pdW1BY2Nlc3MiOnt9fSwidXNlciI6eyJjbGllbnRJZCI6IldFZXYwanlNSnhMWThkMmo3djkwIiwidXNlcklkIjoiSllvZnMwUHR4NHE2ak5aeDBrTHQiLCJlbWFpbCI6InRkYXJ0Z2FsbGVyeUBtYWlsLmNvbSIsInJvbGUiOiJPV05FUiIsInR5cGUiOiJDTElFTlQifX0sInR5cGUiOiJBQ0NFU1MiLCJpYXQiOjE2NjE3NzkzNzB9.iPCjrYBWFEL3Llvpv7xxf0GlIxufGMOsWqiFwO9MC8A"; */
+
+
+		$this->APIURL = "https://delivery-partners-integrator-production-vtbootglhq-uc.a.run.app/v1/";
+		$this->token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InRva2VuIjp7ImNhdGVnb3J5IjoiUFVCTElTSEFCTEUiLCJlbnYiOiJQUk9EVUNUSU9OIiwicHJlbWl1bUFjY2VzcyI6e319LCJ1c2VyIjp7ImNsaWVudElkIjoiV0VldjBqeU1KeExZOGQyajd2OTAiLCJ1c2VySWQiOiJKWW9mczBQdHg0cTZqTlp4MGtMdCIsImVtYWlsIjoidGRhcnRnYWxsZXJ5QG1haWwuY29tIiwicm9sZSI6Ik9XTkVSIiwidHlwZSI6IkNMSUVOVCJ9fSwidHlwZSI6IkFDQ0VTUyIsImlhdCI6MTY2MTc3OTM3MH0.nYtT-Le-uWZk7bspIj1oda2W7H9ET1SmC-CghDQ37FA";
+
+		$this->tokenSubmit = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InRva2VuIjp7ImNhdGVnb3J5IjoiU0VDUkVUIiwiZW52IjoiUFJPRFVDVElPTiIsInByZW1pdW1BY2Nlc3MiOnt9fSwidXNlciI6eyJjbGllbnRJZCI6IldFZXYwanlNSnhMWThkMmo3djkwIiwidXNlcklkIjoiSllvZnMwUHR4NHE2ak5aeDBrTHQiLCJlbWFpbCI6InRkYXJ0Z2FsbGVyeUBtYWlsLmNvbSIsInJvbGUiOiJPV05FUiIsInR5cGUiOiJDTElFTlQifX0sInR5cGUiOiJBQ0NFU1MiLCJpYXQiOjE2NjE3NzkzNzB9.Obcq3FhvCQkIPGzvAmYckI0jKHoVH4bAkEU1tGSHAHs";
+
 		$this->siteLocation = "site_location";
 		$this->uv_delivery = "uv_delivery";
+		$this->orders = "orders";
 	}
 
 	public function response_post()
@@ -123,12 +133,15 @@ class Deliverypartners extends REST_Controller
 			);
 
 			$post_Params = json_encode($postParams);
+
+			/* API_SERVICE_BASIC */
 			$headers = array(
 				"x-api-key:Bearer " . $this->token,
-				"x-api-origin:API_SERVICE_BASIC",
+				"x-api-origin:API_SERVICE",
 				"Content-Type:application/json"
 			);
 			$priceDetails = loadCurlPost($this->APIURL . 'delivery-partners/prices/all', $headers, $post_Params);
+
 			if (!empty($priceDetails)) {
 				if (!empty($priceDetails->data)) {
 					$result = array();
@@ -209,9 +222,15 @@ class Deliverypartners extends REST_Controller
 				),
 				'destinations' => array(
 					array(
-						"itemCategoryId" => "ixxiIBKFbIgUgFZhVWsj",
+						//Sanbox
+						/* "itemCategoryId" => "ixxiIBKFbIgUgFZhVWsj",
 						"weightCategoryId" => "Q7uZUL6nmdEpaQNfOqAO",
+						"dimensionCategoryId" => "2vMV629jDxUp7PfkEC1Y", */
+						//Live
+						"itemCategoryId" => "9jJHWONSPD797fk1y05k",
+						"weightCategoryId" => "WkZGdhNAthu1aDDKWKu5",
 						"dimensionCategoryId" => "2vMV629jDxUp7PfkEC1Y",
+
 						"dimension" => array(
 							"height" => 5,
 							"width" => 5,
@@ -308,11 +327,12 @@ class Deliverypartners extends REST_Controller
 
 			$customerID = decode_value(post_value('customerID'));
 			$deliveryOrderID = post_value('deliveryOrderID');
+			$orderPrimaryID = post_value('orderPrimaryID');
 			$checkingDelivery = $this->Mydb->get_record('*', $this->uv_delivery, array('delivery_company_unique_id' => $unquieid, 'delivery_customer_id' => $customerID, 'delivery_uv_id' => $deliveryOrderID));
 			if (!empty($checkingDelivery)) {
 				$headers = array(
-					"x-api-key:Bearer " . $this->token,
-					"x-api-origin:WOOCOMMERCE_BASIC",
+					"x-api-key:Bearer " . $this->tokenSubmit,
+					"x-api-origin:API_SERVICE_BASIC",
 					"Content-Type: application/json"
 				);
 				$post_Params = array();
@@ -324,7 +344,10 @@ class Deliverypartners extends REST_Controller
 						'delivery_uv_delivery_id' => (!empty($executeDetails->data)) ? $executeDetails->data->deliveryId : ''
 					);
 					$this->Mydb->update($this->uv_delivery, array('delivery_uv_id' => $deliveryOrderID), $uptateArray);
+
 					if (!empty($executeDetails->data)) {
+						$this->Mydb->update($this->orders, array('order_primary_id' => $orderPrimaryID, 'order_company_unique_id' => $unquieid), array('order_status' => '2'));
+
 						$return_array = array('status' => "ok", 'message' => $executeDetails->meta->message, 'deliveryId' => $executeDetails->data->deliveryId);
 						$this->set_response($return_array, success_response());
 					} else {
@@ -343,21 +366,18 @@ class Deliverypartners extends REST_Controller
 						}
 					}
 				} else {
-
 					$this->set_response(array(
 						'status' => 'error',
 						'message' => get_label('invalid_delivery_order'),
 					), something_wrong()); /* error message */
 				}
 			} else {
-
 				$this->set_response(array(
 					'status' => 'error',
 					'message' => get_label('invalid_delivery_order'),
 				), something_wrong()); /* error message */
 			}
 		} else {
-
 			$this->set_response(array(
 				'status' => 'error',
 				'message' => get_label('rest_form_error'),

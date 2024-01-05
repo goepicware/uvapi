@@ -256,6 +256,7 @@ class Report extends REST_Controller
 		$order_availability = $this->input->get('order_availability');
 		$order_status = $this->input->get('order_status');
 		$order_outlet = $this->input->get('order_outlet');
+		$itemwise = $this->input->get('itemwise');
 
 
 		$company_id = decode_value($this->input->get('company_id'));
@@ -324,6 +325,49 @@ class Report extends REST_Controller
 			$outletList = array_combine($outlet_id, $outlet_name);
 		}
 		if (!empty($result)) {
+
+			if (!empty($itemwise)) {
+				$orderID = array_unique(array_column($result, 'order_primary_id'));
+
+				$itemWhere = "item_order_primary_id IN (" . implode(',', $orderID) . ")";
+
+				$selectItemValues = array(
+					"item_outlet_id",
+					'item_id',
+					'item_order_primary_id',
+					'item_product_id',
+					'item_voucher_id',
+					'item_name',
+					'item_sku',
+					'item_qty',
+					'item_unit_price',
+					'item_total_amount',
+					'item_specification',
+				);
+				$orderItem = $this->Mydb->get_all_records($selectItemValues, $this->order_items, $itemWhere);
+				$finalorderItem = [];
+				if (!empty($orderItem)) {
+					$item_id = array_unique(array_column($orderItem, 'item_id'));
+
+					$comobWhere = "menu_item_id IN (" . implode(',', $item_id) . ")";
+					$combomenuItem = $this->Mydb->get_all_records('menu_item_id, menu_menu_component_id, menu_menu_component_name, menu_product_name, menu_product_sku, menu_product_qty, menu_product_price, menu_custom_logo, menu_custom_text,menu_menu_component_min_max_appy, menu_kitchen_status, menu_product_extra_qty, menu_product_extra_price', $this->component_set, $comobWhere);
+					$finalcombomenuItem = [];
+					if (!empty($combomenuItem)) {
+						foreach ($combomenuItem as $val) {
+							$finalcombomenuItem[$val['menu_item_id']][$val['menu_menu_component_id']]['component_id'] = $val['menu_menu_component_id'];
+							$finalcombomenuItem[$val['menu_item_id']][$val['menu_menu_component_id']]['component_name'] = $val['menu_menu_component_name'];
+							$finalcombomenuItem[$val['menu_item_id']][$val['menu_menu_component_id']]['component_item'][] = $val;
+						}
+					}
+				}
+				foreach ($orderItem as $key => $val) {
+					$finalorderItem[$val['item_order_primary_id']][$val['item_id']] = $val;
+					$finalorderItem[$val['item_order_primary_id']][$val['item_id']]['comboSet'] = (!empty($finalcombomenuItem[$val['item_id']])) ? $finalcombomenuItem[$val['item_id']] : [];
+				}
+			}
+			/* print '<pre>';
+			print_r($finalorderItem); */
+
 			$exportarray =  array();
 			$this->load->helper('export');
 			$reportTitle = array(
@@ -347,6 +391,9 @@ class Report extends REST_Controller
 				'Payment Mode',
 				'Rider',
 			);
+			if (!empty($itemwise)) {
+				$reportTitle = array_merge($reportTitle, array('Item Name', 'SKU', 'Quantity', 'Price', 'Combo Name', 'Combo Products'));
+			}
 			$exportarray[]  = $reportTitle;
 			foreach ($result as $val) {
 				$orderTime = date('d-m-Y', strtotime($val['order_date'])) . " ";
@@ -364,29 +411,144 @@ class Report extends REST_Controller
 					}
 				}
 
-				$exportarray[] = array(
-					$val['order_local_no'],
-					$orderTime,
-					$val['order_created_on'],
-					$displyOutelt,
-					$val['customer_name'],
-					$val['order_availability_name'],
-					$val['status_name'],
-					$val['order_sub_total'],
-					$val['order_delivery_charge'],
-					$val['order_additional_delivery'],
-					$val['order_tax_charge'],
-					($val['order_tax_calculate_amount_inclusive'] > 0) ? 'Inclusive' : 'Exclusive',
-					$val['order_tax_calculate_amount'],
-					$val['order_service_charge_amount'],
-					$val['order_discount_amount'],
-					$val['order_special_discount_amount'],
-					$val['order_total_amount'],
-					$val['order_method_name'],
-					'N/A',
-				);
-			}
 
+				if (!empty($itemwise)) {
+
+					if (!empty($finalorderItem[$val['order_primary_id']])) {
+						/* print '<pre>';
+						print_r($finalorderItem[$val['order_primary_id']]); */
+						foreach ($finalorderItem[$val['order_primary_id']] as $orderItems) {
+
+							if (!empty($orderItems['comboSet'])) {
+								$k = 0;
+								foreach ($orderItems['comboSet'] as $comboDetails) {
+									$comboProducts = '';
+									if (!empty($comboDetails['component_item'])) {
+										foreach ($comboDetails['component_item'] as $comboProItem) {
+											if ($comboProducts !== "") {
+												$comboProducts .= "|";
+											}
+											$comboProducts .= $comboProItem['menu_product_name'] . '~' . $comboProItem['menu_product_qty'] . '~' . showPriceWithoutSymbol($comboProItem['menu_product_price']);
+										}
+									}
+									if ($k == 0) {
+										$exportarray[] = array(
+											$val['order_local_no'],
+											$orderTime,
+											$val['order_created_on'],
+											$displyOutelt,
+											$val['customer_name'],
+											$val['order_availability_name'],
+											$val['status_name'],
+											showPriceWithoutSymbol($val['order_sub_total']),
+											showPriceWithoutSymbol($val['order_delivery_charge']),
+											showPriceWithoutSymbol($val['order_additional_delivery']),
+											$val['order_tax_charge'],
+											($val['order_tax_calculate_amount_inclusive'] > 0) ? 'Inclusive' : 'Exclusive',
+											showPriceWithoutSymbol($val['order_tax_calculate_amount']),
+											showPriceWithoutSymbol($val['order_service_charge_amount']),
+											showPriceWithoutSymbol($val['order_discount_amount']),
+											showPriceWithoutSymbol($val['order_special_discount_amount']),
+											showPriceWithoutSymbol($val['order_total_amount']),
+											$val['order_method_name'],
+											'N/A',
+											$orderItems['item_name'],
+											$orderItems['item_sku'],
+											$orderItems['item_qty'],
+											showPriceWithoutSymbol($orderItems['item_total_amount']),
+											$comboDetails['component_name'],
+											$comboProducts
+										);
+									} else {
+
+										$exportarray[] = array(
+											" ",
+											" ",
+											" ",
+											" ",
+											" ",
+											" ",
+											'',
+											'',
+											'',
+											'',
+											'',
+											'',
+											'',
+											'',
+											'',
+											'',
+											'',
+											'',
+											'',
+											'',
+											'',
+											'',
+											'',
+											$comboDetails['component_name'],
+											$comboProducts
+										);
+									}
+									$k++;
+								}
+							} else {
+								$exportarray[] = array(
+									$val['order_local_no'],
+									$orderTime,
+									$val['order_created_on'],
+									$displyOutelt,
+									$val['customer_name'],
+									$val['order_availability_name'],
+									$val['status_name'],
+									showPriceWithoutSymbol($val['order_sub_total']),
+									showPriceWithoutSymbol($val['order_delivery_charge']),
+									showPriceWithoutSymbol($val['order_additional_delivery']),
+									$val['order_tax_charge'],
+									($val['order_tax_calculate_amount_inclusive'] > 0) ? 'Inclusive' : 'Exclusive',
+									showPriceWithoutSymbol($val['order_tax_calculate_amount']),
+									showPriceWithoutSymbol($val['order_service_charge_amount']),
+									showPriceWithoutSymbol($val['order_discount_amount']),
+									showPriceWithoutSymbol($val['order_special_discount_amount']),
+									showPriceWithoutSymbol($val['order_total_amount']),
+									$val['order_method_name'],
+									'N/A',
+									$orderItems['item_name'],
+									$orderItems['item_sku'],
+									$orderItems['item_qty'],
+									$orderItems['item_total_amount']
+								);
+							}
+						}
+					}
+				} else {
+					$exportarray[] = array(
+						$val['order_local_no'],
+						$orderTime,
+						$val['order_created_on'],
+						$displyOutelt,
+						$val['customer_name'],
+						$val['order_availability_name'],
+						$val['status_name'],
+						showPriceWithoutSymbol($val['order_sub_total']),
+						showPriceWithoutSymbol($val['order_delivery_charge']),
+						showPriceWithoutSymbol($val['order_additional_delivery']),
+						$val['order_tax_charge'],
+						($val['order_tax_calculate_amount_inclusive'] > 0) ? 'Inclusive' : 'Exclusive',
+						showPriceWithoutSymbol($val['order_tax_calculate_amount']),
+						showPriceWithoutSymbol($val['order_service_charge_amount']),
+						showPriceWithoutSymbol($val['order_discount_amount']),
+						showPriceWithoutSymbol($val['order_special_discount_amount']),
+						showPriceWithoutSymbol($val['order_total_amount']),
+						$val['order_method_name'],
+						'N/A',
+					);
+				}
+			}
+			/* 	print '<pre>';
+			print_r($exportarray);
+			//print_r($finalorderItem);
+			echo 'hi';
+			exit; */
 			array_to_xls($exportarray, 'reports-' . date("m-d-Y-h-i-A") . '.xls');
 		} else {
 			$this->set_response(array('status' => 'error', 'message' => get_label('no_records_found')), something_wrong());

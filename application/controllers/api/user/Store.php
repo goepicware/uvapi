@@ -188,8 +188,8 @@ class Store extends REST_Controller
 	{
 		$company = app_validation($this->get('unquieid')); /* validate app */
 		$company_id = $company['company_id'];
-		$latitude = $this->get('latitude');
-		$longitude = $this->get('longitude');
+		$latitude = trim($this->get('latitude'));
+		$longitude = trim($this->get('longitude'));
 		$locationID = $this->get('locationID');
 		$avilability = $this->get('avilability');
 		$join = array();
@@ -252,6 +252,7 @@ class Store extends REST_Controller
 							$lat_values  = explode(",", $region_str_explode[0]);
 							$lang_values = explode(",", $region_str_explode[1]);
 							$m           = 0;
+
 							foreach ($lat_values as $lat) {
 								$lat     = $lat_values[$m];
 								$lang    = $lang_values[$m];

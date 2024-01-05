@@ -269,10 +269,17 @@ class Cart extends REST_Controller
 		$shopID = decode_value(post_value('shopID'));
 		$productID = post_value('productID');
 		$quantity = post_value('quantity');
-		$product = $this->Mydb->get_record('product_price, product_sku, product_name, product_alias, product_thumbnail', $this->products, array('product_id' => $productID));
+		$product = $this->Mydb->get_record('product_price, product_sku, product_name, product_alias, product_thumbnail, product_special_price, product_special_price_from_date, product_special_price_to_date', $this->products, array('product_id' => $productID));
 		if (!empty($product)) {
 			if ($productType == 'Simple') {
+
+				$orderDate = date('Y-m-d');
 				$productPrice =  $product['product_price'];
+				if (!empty($product['product_special_price']) && $product['product_special_price'] > 0 && !empty($product['product_special_price_from_date']) && !empty($product['product_special_price_to_date'])) {
+					if ($product['product_special_price_from_date'] <= $orderDate  && $product['product_special_price_to_date'] >= $orderDate) {
+						$productPrice =  $product['product_special_price'];
+					}
+				}
 			} else {
 				$productPrice =  post_value('productPrice');
 			}

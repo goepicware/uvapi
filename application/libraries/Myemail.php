@@ -233,7 +233,7 @@ class Myemail
 			$to_email = ($to_email_address == '') ? $compDetails['admin_email']  : $to_email_address;
 			$from_email = $compDetails['client_to_email'];
 			$from_email_sendgrid = $compDetails['from_email'];
-			$site_title = ucfirst($compDetails['company_site_name']);
+			$site_title = ucfirst($compDetails['company_name']);
 			if (empty($subject)) {
 				$subject = $result['email_subject'];
 			}

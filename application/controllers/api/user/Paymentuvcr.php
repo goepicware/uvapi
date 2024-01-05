@@ -81,7 +81,7 @@ class Paymentuvcr extends REST_Controller
 					$orderItem[] = array(
 						'id' => $product['productID'],
 						'price' => (int) number_format($product['itemTotalPrice'], 0, '', ''),
-						'disc_price' => 0,
+						'disc_price' => (int) number_format($product['itemTotalPrice'], 0, '', ''),,
 						'quantity' => (int) $product['itemQuantity'],
 						'name' => $product['itemName']
 					);

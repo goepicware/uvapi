@@ -909,3 +909,10 @@ if (!function_exists('loadCurlPatch')) {
 		}
 	}
 }
+
+if (!function_exists('showPriceWithoutSymbol')) {
+	function showPriceWithoutSymbol($price)
+	{
+		return number_format($price, 3);
+	}
+}
