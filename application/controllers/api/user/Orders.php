@@ -366,14 +366,14 @@ class Orders extends REST_Controller
 
 			// set document information
 			$pdf->SetCreator(PDF_CREATOR);
-			$pdf->SetAuthor('Ninja POS');
+			$pdf->SetAuthor('Epicware POS');
 			$pdf->SetTitle('Order');
 
 			// set default monospaced font
 			$pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
 
 			// set margins
-			$pdf->SetMargins(PDF_MARGIN_LEFT, PDF_MARGIN_TOP, PDF_MARGIN_RIGHT);
+			$pdf->SetMargins(PDF_MARGIN_LEFT, 3, PDF_MARGIN_RIGHT);
 			$pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
 			$pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
 
@@ -409,7 +409,7 @@ class Orders extends REST_Controller
 			// ---------------------------------------------------------
 			//Close and output PDF document
 			if (!empty($download)) {
-				$pdf->Output($pdfName, 'D');
+				$pdf->Output($pdfNameTxt, 'D');
 				exit;
 			} else {
 				$pdf->Output($file_location, 'F');
@@ -445,6 +445,112 @@ class Orders extends REST_Controller
 			), success_response());
 		}
 	}
+
+	public	function generateMultiPDF_get()
+	{
+
+		$unquieid = $this->get('unquieid');
+		$company = app_validation($unquieid);
+		$orderprimaryid = $this->get('orderID');
+		$download = $this->get('download');
+
+		$company_currency = $company['company_currency'];
+		if (!empty($orderprimaryid)) {
+			$pdfNameTxt = 'multi-orders' . date('YmdHis') . '.pdf';
+			$file_location = FCPATH . "media/" . "order-pdf/" . $pdfNameTxt;
+			// Include the main TCPDF library (search for installation path).
+			require(FCPATH . 'application/libraries/TCPDF-master/tcpdf.php');
+			// create new PDF document
+			$pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+
+			// set document information
+			$pdf->SetCreator(PDF_CREATOR);
+			$pdf->SetAuthor('Epicware POS');
+			$pdf->SetTitle('Order');
+
+			// set default monospaced font
+			$pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
+
+			// set margins
+			$pdf->SetMargins(PDF_MARGIN_LEFT, 3, PDF_MARGIN_RIGHT);
+			$pdf->SetHeaderMargin(PDF_MARGIN_HEADER);
+			$pdf->SetFooterMargin(PDF_MARGIN_FOOTER);
+
+			// set auto page breaks
+			$pdf->SetAutoPageBreak(TRUE, PDF_MARGIN_BOTTOM);
+
+			// set image scale factor
+			$pdf->setImageScale(PDF_IMAGE_SCALE_RATIO);
+
+			// set some language-dependent strings (optional)
+			if (@file_exists(dirname(__FILE__) . '/lang/eng.php')) {
+				require_once(dirname(__FILE__) . '/lang/eng.php');
+				$pdf->setLanguageArray($l);
+			}
+
+			// ---------------------------------------------------------
+
+			$pdf->setPrintHeader(false);
+			$pdf->setPrintFooter(false);
+
+			// set font
+			$pdf->SetFont('dejavusans', '', 10);
+
+			$orderID = explode(',', $orderprimaryid);
+			foreach ($orderID as $order_primary_id) {
+				$where = array(
+					'order_id' => $order_primary_id,
+					'order_company_unique_id' => $unquieid
+				);
+				$orderDetails = orderDetails($where);
+				if (!empty($orderDetails)) {
+					/* load  data */
+					$data = $orderDetails;
+					$data['company'] = $company;
+					$data['company_currency'] = $company_currency;
+					$html = $this->load->view("order_pdf_view", $data, true);
+					// add a page
+					$pdf->AddPage();
+
+					// output the HTML content
+					$pdf->writeHTML($html, true, false, true, false, '');
+					// reset pointer to the last page
+					// ---------------------------------------------------------
+					//Close and output PDF document
+					$pdf->lastPage();
+				}
+			}
+			if (!empty($download)) {
+				$pdf->Output($pdfNameTxt, 'D');
+				exit;
+			} else {
+				$pdf->Output($file_location, 'F');
+			}
+
+			$pdf_url = PDF_SOURCE . $pdfNameTxt;
+
+			if ($pdf_url != '') {
+				$this->response(array(
+					'status' => 'ok',
+					'pdf_url' => $pdf_url,
+					'message' => get_label('reset_pdf_success')
+				), success_response());
+			} else {
+
+				$this->response(array(
+					'status' => 'error',
+					'message' => get_label('reset_pdf_failure')
+				), success_response());
+			}
+		} else {
+			$this->response(array(
+				'status' => 'error',
+				'message' => get_label('reset_pdf_failure')
+			), success_response());
+		}
+	}
+
+
 
 	public	function sendMail_get()
 	{

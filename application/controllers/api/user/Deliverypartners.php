@@ -20,16 +20,16 @@ class Deliverypartners extends REST_Controller
 			'form_validation',
 		));
 		$this->form_validation->set_error_delimiters('<p>', '</p>');
-		/* $this->APIURL = "https://delivery-partners-integrator-sandbox-adchrwkija-uc.a.run.app/v1/";
+		$this->APIURL = "https://delivery-partners-integrator-sandbox-adchrwkija-uc.a.run.app/v1/";
 		$this->token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InRva2VuIjp7ImNhdGVnb3J5IjoiU0VDUkVUIiwiZW52IjoiU0FOREJPWCIsInByZW1pdW1BY2Nlc3MiOnt9fSwidXNlciI6eyJjbGllbnRJZCI6IldFZXYwanlNSnhMWThkMmo3djkwIiwidXNlcklkIjoiSllvZnMwUHR4NHE2ak5aeDBrTHQiLCJlbWFpbCI6InRkYXJ0Z2FsbGVyeUBtYWlsLmNvbSIsInJvbGUiOiJPV05FUiIsInR5cGUiOiJDTElFTlQifX0sInR5cGUiOiJBQ0NFU1MiLCJpYXQiOjE2NjE3NzkzNzB9.iPCjrYBWFEL3Llvpv7xxf0GlIxufGMOsWqiFwO9MC8A";
 
-		$this->tokenSubmit = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InRva2VuIjp7ImNhdGVnb3J5IjoiU0VDUkVUIiwiZW52IjoiU0FOREJPWCIsInByZW1pdW1BY2Nlc3MiOnt9fSwidXNlciI6eyJjbGllbnRJZCI6IldFZXYwanlNSnhMWThkMmo3djkwIiwidXNlcklkIjoiSllvZnMwUHR4NHE2ak5aeDBrTHQiLCJlbWFpbCI6InRkYXJ0Z2FsbGVyeUBtYWlsLmNvbSIsInJvbGUiOiJPV05FUiIsInR5cGUiOiJDTElFTlQifX0sInR5cGUiOiJBQ0NFU1MiLCJpYXQiOjE2NjE3NzkzNzB9.iPCjrYBWFEL3Llvpv7xxf0GlIxufGMOsWqiFwO9MC8A"; */
+		$this->tokenSubmit = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InRva2VuIjp7ImNhdGVnb3J5IjoiU0VDUkVUIiwiZW52IjoiU0FOREJPWCIsInByZW1pdW1BY2Nlc3MiOnt9fSwidXNlciI6eyJjbGllbnRJZCI6IldFZXYwanlNSnhMWThkMmo3djkwIiwidXNlcklkIjoiSllvZnMwUHR4NHE2ak5aeDBrTHQiLCJlbWFpbCI6InRkYXJ0Z2FsbGVyeUBtYWlsLmNvbSIsInJvbGUiOiJPV05FUiIsInR5cGUiOiJDTElFTlQifX0sInR5cGUiOiJBQ0NFU1MiLCJpYXQiOjE2NjE3NzkzNzB9.iPCjrYBWFEL3Llvpv7xxf0GlIxufGMOsWqiFwO9MC8A";
 
 
-		$this->APIURL = "https://delivery-partners-integrator-production-vtbootglhq-uc.a.run.app/v1/";
+		/* $this->APIURL = "https://delivery-partners-integrator-production-vtbootglhq-uc.a.run.app/v1/";
 		$this->token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InRva2VuIjp7ImNhdGVnb3J5IjoiUFVCTElTSEFCTEUiLCJlbnYiOiJQUk9EVUNUSU9OIiwicHJlbWl1bUFjY2VzcyI6e319LCJ1c2VyIjp7ImNsaWVudElkIjoiV0VldjBqeU1KeExZOGQyajd2OTAiLCJ1c2VySWQiOiJKWW9mczBQdHg0cTZqTlp4MGtMdCIsImVtYWlsIjoidGRhcnRnYWxsZXJ5QG1haWwuY29tIiwicm9sZSI6Ik9XTkVSIiwidHlwZSI6IkNMSUVOVCJ9fSwidHlwZSI6IkFDQ0VTUyIsImlhdCI6MTY2MTc3OTM3MH0.nYtT-Le-uWZk7bspIj1oda2W7H9ET1SmC-CghDQ37FA";
 
-		$this->tokenSubmit = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InRva2VuIjp7ImNhdGVnb3J5IjoiU0VDUkVUIiwiZW52IjoiUFJPRFVDVElPTiIsInByZW1pdW1BY2Nlc3MiOnt9fSwidXNlciI6eyJjbGllbnRJZCI6IldFZXYwanlNSnhMWThkMmo3djkwIiwidXNlcklkIjoiSllvZnMwUHR4NHE2ak5aeDBrTHQiLCJlbWFpbCI6InRkYXJ0Z2FsbGVyeUBtYWlsLmNvbSIsInJvbGUiOiJPV05FUiIsInR5cGUiOiJDTElFTlQifX0sInR5cGUiOiJBQ0NFU1MiLCJpYXQiOjE2NjE3NzkzNzB9.Obcq3FhvCQkIPGzvAmYckI0jKHoVH4bAkEU1tGSHAHs";
+		$this->tokenSubmit = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYXRhIjp7InRva2VuIjp7ImNhdGVnb3J5IjoiU0VDUkVUIiwiZW52IjoiUFJPRFVDVElPTiIsInByZW1pdW1BY2Nlc3MiOnt9fSwidXNlciI6eyJjbGllbnRJZCI6IldFZXYwanlNSnhMWThkMmo3djkwIiwidXNlcklkIjoiSllvZnMwUHR4NHE2ak5aeDBrTHQiLCJlbWFpbCI6InRkYXJ0Z2FsbGVyeUBtYWlsLmNvbSIsInJvbGUiOiJPV05FUiIsInR5cGUiOiJDTElFTlQifX0sInR5cGUiOiJBQ0NFU1MiLCJpYXQiOjE2NjE3NzkzNzB9.Obcq3FhvCQkIPGzvAmYckI0jKHoVH4bAkEU1tGSHAHs"; */
 
 		$this->siteLocation = "site_location";
 		$this->uv_delivery = "uv_delivery";
@@ -223,14 +223,14 @@ class Deliverypartners extends REST_Controller
 				'destinations' => array(
 					array(
 						//Sanbox
-						/* "itemCategoryId" => "ixxiIBKFbIgUgFZhVWsj",
+						"itemCategoryId" => "ixxiIBKFbIgUgFZhVWsj",
 						"weightCategoryId" => "Q7uZUL6nmdEpaQNfOqAO",
-						"dimensionCategoryId" => "2vMV629jDxUp7PfkEC1Y", */
+						"dimensionCategoryId" => "2vMV629jDxUp7PfkEC1Y",
 						//Live
-						"itemCategoryId" => "9jJHWONSPD797fk1y05k",
+						/* "itemCategoryId" => "9jJHWONSPD797fk1y05k",
 						"weightCategoryId" => "WkZGdhNAthu1aDDKWKu5",
 						"dimensionCategoryId" => "2vMV629jDxUp7PfkEC1Y",
-
+ */
 						"dimension" => array(
 							"height" => 5,
 							"width" => 5,

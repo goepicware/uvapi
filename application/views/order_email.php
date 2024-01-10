@@ -282,7 +282,7 @@
                               } else {
                                 $menu_set .= "<br>";
                               }
-                              $pro_price = ($product_detail['productPrice'] > 0 ? " (+" . $currecnySymbol . ' ' . $product_detail['productPrice'] . ")" : '');
+                              $pro_price = ($product_detail['productPrice'] > 0 ? " (+" . show_price_client($product_detail['productPrice'], $currecnySymbol) . ")" : '');
                               $pro_qty = ($product_detail['quantity'] == 0 ? 1 : $product_detail['quantity']) . $pro_price;
                               $menu_set .= $pro_qty . " X " . $product_detail['productName'];
                               $j++;
@@ -292,9 +292,9 @@
                         }
                         ?>
                      </td>
-                     <td style=" padding: 10px; font: normal 16px arial; text-align:right"><?php echo $currecnySymbol . ' ' . $item['itemPrice']; ?></td>
+                     <td style=" padding: 10px; font: normal 16px arial; text-align:right"><?php echo show_price_client($item['itemPrice'], $currecnySymbol); ?></td>
                      <td style=" padding: 10px; font: normal 16px arial;  text-align:center"><?php echo $item['itemQuantity']; ?></td>
-                     <td style=" padding: 10px; font: normal 16px arial;  text-align:right"><?php echo $currecnySymbol . ' ' . $item['itemTotalPrice']; ?></td>
+                     <td style=" padding: 10px; font: normal 16px arial;  text-align:right"><?php echo show_price_client($item['itemTotalPrice'], $currecnySymbol); ?></td>
                    </tr>
                <?php
                   }
@@ -304,7 +304,7 @@
                  <tr>
                    <td colspan="4" style=" padding: 10px;font: normal 16px arial; text-align:right"><?= get_label('order_subtotal'); ?> </td>
                    <td style=" padding: 10px;font: normal 16px arial; text-align:right">
-                     <?php echo $currecnySymbol . ' ' . $order_list[0]['order_sub_total']; ?>
+                     <?php echo show_price_client($order_list[0]['order_sub_total'], $currecnySymbol); ?>
                    </td>
                  </tr>
                  <?php
@@ -318,7 +318,7 @@
                           if ($promo['promotion_history_delivery_charge'] == "Yes") {
                             echo 'Free Delivery';
                           } else {
-                            echo '- ' . $currecnySymbol . ' ' . number_format($promo['promotion_history_applied_amt'], 2, '.', '');
+                            echo '- ' . show_price_client($promo['promotion_history_applied_amt'], $currecnySymbol);
                           }
                           ?>
                        </td>
@@ -333,7 +333,7 @@
                     ?>
                    <tr>
                      <td colspan="4" align="right" style=" padding: 10px; font: normal 16px arial;"><?php echo get_label('order_delivery_charge'); ?></td>
-                     <td style=" padding: 10px;font: normal 16px arial;" align="right"> <?= $currecnySymbol . ' ' . $delivery_charge_total; ?></td>
+                     <td style=" padding: 10px;font: normal 16px arial;" align="right"> <?= show_price_client($delivery_charge_total, $currecnySymbol); ?></td>
                    </tr>
                  <?php
                   }
@@ -353,7 +353,7 @@
                      </td>
 
                      <td style=" padding: 10px; font: normal 16px arial;" align="right">
-                       <?php echo (isset($order_list[0]['order_tax_calculate_amount']) && $order_list[0]['order_tax_calculate_amount'] != '') ? $currecnySymbol . ' ' . $order_list[0]['order_tax_calculate_amount'] : 'N/A' ?></td>
+                       <?php echo (isset($order_list[0]['order_tax_calculate_amount']) && $order_list[0]['order_tax_calculate_amount'] != '') ? show_price_client($order_list[0]['order_tax_calculate_amount'], $currecnySymbol) : 'N/A' ?></td>
                    </tr>
 
                  <?php
@@ -361,7 +361,7 @@
                   ?>
                  <tr>
                    <td colspan="4" align="right" style=" padding: 10px; font: normal 16px arial;"><?php echo get_label('order_total_amount'); ?> </td>
-                   <td style=" padding: 10px; font: normal 16px arial;" align="right"><?= $currecnySymbol . ' ' . $order_list[0]['order_total_amount']; ?></td>
+                   <td style=" padding: 10px; font: normal 16px arial;" align="right"><?= show_price_client($order_list[0]['order_total_amount'], $currecnySymbol); ?></td>
                  </tr>
                </tfoot>
              </table>

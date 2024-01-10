@@ -1,5 +1,5 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 /*
 | -------------------------------------------------------------------------
@@ -50,11 +50,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |		my-controller/my-method	-> my_controller/my_method
 */
 $route['default_controller'] = 'welcome';
-$route[CLIENT_PANEL.'/login/(:any)'] = CLIENT_PANEL."/index/$1";
-$route[BUSINESS_PANEL.'/login/(:any)'] = BUSINESS_PANEL."/index/$1";
-$route[CALLCENTER_PANEL.'/login/(:any)'] = CALLCENTER_PANEL."/index/$1";
-$route[CALLCENTER_PANEL.'/cateringdetail/(:any)'] = CALLCENTER_PANEL.'/catering/cateringdetail/$1';
+$route[CLIENT_PANEL . '/login/(:any)'] = CLIENT_PANEL . "/index/$1";
+$route[BUSINESS_PANEL . '/login/(:any)'] = BUSINESS_PANEL . "/index/$1";
+$route[CALLCENTER_PANEL . '/login/(:any)'] = CALLCENTER_PANEL . "/index/$1";
+$route[CALLCENTER_PANEL . '/cateringdetail/(:any)'] = CALLCENTER_PANEL . '/catering/cateringdetail/$1';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
 $route['generatePDF'] = "api/user/orders/generatePDF";
+$route['generateMultiPDF'] = "api/user/orders/generateMultiPDF";
 $route['sendOrderEmail'] = "api/user/orders/sendMail";

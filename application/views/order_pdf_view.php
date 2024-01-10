@@ -335,13 +335,13 @@
                             <?php echo $item['itemQuantity']; ?>
                         </td>
                         <td align="center" valign="top" style="font-size: 11px; color: #1a1150; border-bottom: none; border-top: none; text-align: right;">
-                            <?php echo $currecnySymbol . ' ' . $item['itemPrice']; ?>
+                            <?php echo show_price_client($item['itemPrice'], $currecnySymbol); ?>
                         </td>
                         <td align="center" valign="top" style="font-size: 11px; color: #1a1150; border-bottom: none; border-top: none;">
                             <table style="width: 100%;" border="0" cellpadding="0" cellspacing="0" width="100%">
                                 <tr>
                                     <td style="width: 100%; font-size: 11px; color: #1a1150; text-align: right;">
-                                        <?php echo $currecnySymbol . ' ' . $item['itemTotalPrice']; ?>
+                                        <?php echo show_price_client($item['itemTotalPrice'], $currecnySymbol); ?>
                                     </td>
                                 </tr>
                             </table>
@@ -384,7 +384,7 @@
                                 </table>
                             </td>
                             <td style="width: 50%; padding: 0 5px; text-align: right; ">
-                                <?php echo $currecnySymbol . " " . $order_list[0]['order_sub_total']; ?>
+                                <?php echo show_price_client($order_list[0]['order_sub_total'], $currecnySymbol); ?>
                             </td>
                         </tr>
                         <?php
@@ -401,7 +401,7 @@
                                         </table>
                                     </td>
                                     <td style="width: 50%; padding: 0 5px; text-align: right;">
-                                        <?php echo $currecnySymbol . " " . $order_list[0]['order_delivery_charge']; ?>
+                                        <?php echo show_price_client($order_list[0]['order_delivery_charge'], $currecnySymbol); ?>
                                     </td>
                                 </tr>
                             <?php
@@ -429,7 +429,7 @@
                                     </table>
                                 </td>
                                 <td style="width: 50%; padding: 0 5px; text-align: right;">
-                                    <?php echo $currecnySymbol . ' ' . (isset($order_list[0]['order_tax_calculate_amount']) && $order_list[0]['order_tax_calculate_amount'] != '') ? $order_list[0]['order_tax_calculate_amount'] : 'N/A'  ?>
+                                    <?php echo show_price_client($order_list[0]['order_tax_calculate_amount'], $currecnySymbol)  ?>
                                 </td>
                             </tr>
 
@@ -445,7 +445,7 @@
                                 </table>
                             </td>
                             <td style="width: 50%; padding: 0 5px; text-align: right;">
-                                <?php echo $currecnySymbol . " " . $order_list[0]['order_total_amount']; ?>
+                                <?php echo show_price_client($order_list[0]['order_total_amount'], $currecnySymbol); ?>
                             </td>
                         </tr>
                     </table>

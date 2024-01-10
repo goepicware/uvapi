@@ -1137,6 +1137,7 @@ $config['csrf_exclude_uris'] = array(
 	'api/clientpanel/rider/delete',
 
 	'api/clientpanel/orders/changeOrderStatus',
+	'api/clientpanel/orders/changeOrderBulkStatus',
 	'api/clientpanel/orders/updateorderdate',
 	'api/clientpanel/rewardspoints/credit',
 	'api/clientpanel/rewardspoints/debit',

@@ -383,346 +383,60 @@ class Orders extends REST_Controller
 				$company_id = decode_value($this->input->post('company_id'));
 				$company_admin_id = decode_value($this->input->post('company_admin_id'));
 				$company = client_validation($company_id); /* validate company */
-				$unique_id = $company['company_unquie_id'];
-
 				$order_id = decode_value($this->input->post('order_id'));
-				$join = array();
-				$i = 0;
-				$join[$i]['select'] = "status_name";
-				$join[$i]['table'] = "pos_order_status";
-				$join[$i]['condition'] = "order_status = status_id AND status_enabled='A' ";
-				$join[$i]['type'] = "RIGHT";
-				$i++;
 
-				$join[$i]['select'] = "pos_outlet_management.outlet_name";
-				$join[$i]['table'] = "pos_outlet_management";
-				$join[$i]['condition'] = "order_outlet_id = pos_outlet_management.outlet_id";
-				$join[$i]['type'] = "LEFT";
+				$order_status = trim($this->input->post('order_status'));
+				$remarks = addslashes(trim($this->input->post('order_remarks')));
+				$order_tracking_remarks = addslashes(trim($this->input->post('order_tracking_remarks')));
+				$rider_id = post_value('rider_id');
 
-				/* order table values */
-				$select_values = array(
-					'order_primary_id',
-					'order_id',
-					'order_status',
-					'order_availability_id',
-					'order_outlet_id',
-					'order_local_no',
-					'order_tracking_remarks'
-				);
+				$response = $this->updateOrderStatus($company_id, $company_admin_id, $company, $order_id, $order_status, $remarks, $order_tracking_remarks, $rider_id);
+				echo json_encode($response);
+				exit();
+			} else {
+				$this->set_response(array(
+					'status' => 'error',
+					'message' => get_label('token_verify_faild'),
+					'form_error' => ''
+				), something_wrong()); /* error message */
+			}
+		} else {
+			$this->set_response(array(
+				'status' => 'error',
+				'message' => get_label('token_faild'),
+				'form_error' => ''
+			), something_wrong()); /* error message */
+		}
+	}
+	public function changeOrderBulkStatus_post()
+	{
+		$headers = $this->input->request_headers();
+		if (isset($headers['Authorization'])) {
+			$decodedToken = $this->authorization_token->validateToken($headers['Authorization']);
+			if ($decodedToken['status']) {
+				$company_id = decode_value($this->input->post('company_id'));
+				$company_admin_id = decode_value($this->input->post('company_admin_id'));
+				$company = client_validation($company_id); /* validate company */
 
-				/* get order list from query */
-				$order_list = $this->Mydb->get_all_records($select_values, $this->table, array(
-					'order_id' => $order_id
-				), 1, '', array(
-					'order_primary_id' => 'DESC'
-				), '', array(
-					'order_primary_id'
-				), $join, '');
-				if (!empty($order_list)) {
-					$availability_id = $order_list[0]['order_availability_id'];
+				$order_id = $this->input->post('orderID');
 
-					if ($order_list[0]['order_status'] != 5) {
+				if (!empty($order_id)) {
+					$order_status = trim($this->input->post('order_status'));
+					$remarks = addslashes(trim($this->input->post('order_remarks')));
+					$order_tracking_remarks = addslashes(trim($this->input->post('order_tracking_remarks')));
 
-						$order_status = trim($this->input->post('order_status'));
-						$remarks = addslashes(trim($this->input->post('order_remarks')));
-						$order_tracking_remarks = addslashes(trim($this->input->post('order_tracking_remarks')));
-
-						$order_text = $this->Mydb->get_record('status_name', 'order_status', array(
-							'status_id' => $order_status
-						));
-
-						$statusList = array(1, 2, 3, 4, 5);
-						if (in_array($order_status, $statusList)) {
-							$order_primary_id = $order_list[0]['order_primary_id'];
-
-							/*-------------------Order tracking details---------------------*/
-							$existing_order_tracking_remarks = $order_list[0]['order_tracking_remarks'];
-							if ($existing_order_tracking_remarks == '') {
-								$existing_order_tracking_remarks = array();
-							} else {
-								$existing_order_tracking_remarks = json_decode($existing_order_tracking_remarks, true);
-							}
-
-							if ($order_tracking_remarks != '') {
-
-								$existing_order_tracking_remarks[$order_status] = $order_tracking_remarks;
-							}
-
-							if (!empty($existing_order_tracking_remarks)) {
-								$existing_order_tracking_remarks = json_encode($existing_order_tracking_remarks);
-							} else {
-								$existing_order_tracking_remarks = null;
-							}
-
-							/*-------------------Order tracking end---------------------*/
-
-							if ($order_status == 5) {
-
-								/*------------ revit quantity to product stock and add log -----------*/
-								if (!empty($company['enable_stock']) && $company['enable_stock'] == "1") {
-									$join = array();
-									$join[0]['select'] = "item_id,item_product_id,item_qty,item_unit_price,item_total_amount";
-									$join[0]['table'] = "order_items";
-									$join[0]['condition'] = "item_order_primary_id = order_primary_id";
-									$join[0]['type'] = "INNER";
-									$products = $this->Mydb->get_all_records('order_primary_id,order_outlet_id,order_company_unique_id', 'orders', array('order_primary_id' => $order_primary_id), '', '', '', '', '', $join);
-
-									if (!empty($products)) {
-										foreach ($products as $pro_items) {
-											$order_itm_qty = ($pro_items['item_qty'] != '') ? $pro_items['item_qty'] : 0;
-											$item_product_id = $pro_items['item_product_id'];
-											$pro_order_id = $pro_items['order_primary_id'];
-
-											rest_product_stock_log($company, $item_product_id, $order_itm_qty, $pro_order_id, '', 'C');
-										}
-									}
-								}
-
-								/*------------------------ end product stock ------------------------*/
-								$this->Mydb->update($this->table, array(
-									'order_id' => $order_id
-								), array(
-									'order_status' => $order_status,
-									'order_remarks' => $remarks,
-									'order_cancel_remark' => $remarks,
-									'order_tracking_remarks' => $existing_order_tracking_remarks,
-									'order_cancel_date' => current_date(),
-									'order_cancel_source' => 'Business',
-									'order_cancel_by' => $company_admin_id
-								));
-								$customer_detail = $this->Mydb->get_record(array(
-									'order_customer_fname',
-									'order_customer_id',
-									'order_customer_lname',
-									'order_customer_email'
-								), 'pos_orders_customer_details', array(
-									'order_customer_order_id' => $order_id
-								));
-
-								/* revert points option */
-								$this->load->helper("promotionrevert");
-								removeRewardPoints($order_primary_id, $customer_detail['order_customer_id']);
-
-
-								//Comment
-								/* $first_name = (!empty($customer_detail['order_customer_fname'])) ? $customer_detail['order_customer_fname'] : "";
-								$last_name = (!empty($customer_detail['order_customer_lname'])) ? $customer_detail['order_customer_lname'] : "";
-								$customer_name = $first_name . " " . $last_name;
-
-								$company_name = $this->session->userdata('camp_company_name');
-
-								$company_array = $this->Mydb->get_record(array(
-									'company_id',
-									'client_name',
-									'client_site_url'
-								), 'pos_clients', array(
-									'client_name' => $company_name
-								));
-
-								//echo $this->db->last_query(); exit;
-
-								$base_url = ($company_array['client_site_url'] != '') ? trim($company_array['client_site_url'], '/') : base_url();
-
-								$emai_logo = $base_url . "/media/email-logo/email-logo.jpg";
-
-								$this->load->library('myemail');
-								$check_arr = array(
-									'[NAME]',
-									'[ORDER_Id]',
-									'[REMARKS]',
-									'[OUTLETNAME]',
-									'[LOCAL_ORDER_NO]',
-									'[LOGOURL]'
-								);
-								$replace_arr = array(
-									ucfirst(stripslashes($customer_name)),
-									$order_id,
-									stripslashes($remarks),
-									$order_list[0]['outlet_name'],
-									$order_list[0]['order_local_no'],
-									$emai_logo
-								);
-
-								$this->myemail->send_client_mail($customer_detail['order_customer_email'], get_emailtemplate($unique_id, 'order_cancel_template'), $check_arr, $replace_arr, $company_id, $unique_id);
-
-								$this->myemail->send_client_mail('', get_emailtemplate($unique_id, 'order_cancel_template'), $check_arr, $replace_arr, $company_id, $unique_id); */
-
-
-
-								/*  if order canceled revert loyalty points  and promotion */
-							} elseif ($order_status == 2 && $availability_id == DELIVERY_ID) {
-
-								$rider_id = post_value('rider_id');
-								if (!empty($rider_id)) {
-									/* remove previous rider entry */
-									$this->Mydb->delete('pos_rider_assigned_orders', array(
-										'assigned_order_company_id' => $company_id,
-										'assigned_order_company_unquie_id' => $unique_id,
-										'assigned_order_order_primary_id' => $order_list[0]['order_primary_id'],
-										'assigned_order_order_id' => $order_list[0]['order_id']
-									));
-
-									/* Insert new rider entry */
-									$this->Mydb->insert('pos_rider_assigned_orders', array(
-										'assigned_order_company_id' => $company_id,
-										'assigned_order_company_unquie_id' => $unique_id,
-										'assigned_order_order_primary_id' => $order_list[0]['order_primary_id'],
-										'assigned_order_order_id' => $order_list[0]['order_id'],
-										'assigned_order_outlet_id' => $order_list[0]['order_outlet_id'],
-										'assigned_order_rider_id' => $rider_id,
-										'assigned_order_created_on' => current_date(),
-										'assigned_order_created_by' => $company_admin_id,
-										'assigned_order_created_ip' => get_ip()
-									));
-
-									$this->Mydb->update($this->table, array(
-										'order_id' => $order_id
-									), array(
-										'order_status' => $order_status,
-										'order_tracking_remarks' => $existing_order_tracking_remarks,
-										'order_updated_on' => current_date(),
-										'order_updated_by' => $company_admin_id,
-										'order_updated_ip' => get_ip()
-									));
-								} else {
-									$response['msg'] = get_label('rider_required');
-									$response['status'] = 'error';
-									echo json_encode($response);
-									exit();
-								}
-							} else {
-
-								/* reward points*/
-								if ($order_status == '4') {
-
-									loyality_change_status($order_primary_id);
-									$this->AddRewardPoints($order_list[0]['order_primary_id']);
-
-									/* Membership upadeted Georges */
-									$voucher_auto_assign = $this->Mydb->get_record('setting_key,setting_value', 'company_settings', array(
-										'company_id' => $company_id, 'setting_key' => 'enable_voucher_auto_assign', 'setting_value' => '1'
-									));
-
-									if (empty($voucher_auto_assign)) {
-										$this->voucher_order_email($order_list[0]['order_primary_id'], $order_list[0]['order_id'], $company);  //sending voucher details email id
-									}
-								}
-								$this->Mydb->update($this->table, array(
-									'order_id' => $order_id
-								), array(
-									'order_status' => $order_status,
-									'order_tracking_remarks' => $existing_order_tracking_remarks,
-									'order_updated_on' => current_date(),
-									'order_updated_by' => $company_admin_id,
-									'order_updated_ip' => get_ip()
-								));
-							}
-
-							/* insert status log track */
-							$log_id = $this->insert_status_log($order_list[0]['order_primary_id'], $order_id, $order_status, $unique_id, $company_id);
-							/* find previous staus and update end date */
-							$this->update_status_log($log_id, $order_list[0]['order_status'], $order_list[0]['order_primary_id'], $unique_id);
-							/* reset pending order count */
-
-
-							/*Change status name*/
-							$ordertext = '';
-
-							if ($availability_id == PICKUP_ID) {
-								if ($order_status == 2) { /*if delivering meand change status as Ready to pickup*/
-									$ordertext = 'Ready to pickup';
-								}
-							} else if ($availability_id == DINEIN_ID && $order_status == 2) {
-								$ordertext = 'Ready to Eat';
-							} else {
-								$ordertext = $order_text['status_name'];
-							}
-
-							/*Push notify when complete the order*/
-							if ($order_status != '1') {
-								/****************Push notification ande activities*****************/
-
-								$order_no =  $order_list[0]['order_local_no'];
-								$order_primary_id =  $order_list[0]['order_primary_id'];
-
-								$cust_select_array = array('order_customer_id', 'CONCAT(order_customer_fname, "", order_customer_lname) AS customer_name', 'order_customer_email', 'order_customer_mobile_no');
-
-								$customer_res = $this->Mydb->get_record($cust_select_array, 'pos_orders_customer_details', array('order_customer_order_primary_id' => $order_primary_id));
-								//Comment
-								/* $push_info_arr = array();
-								$push_from = 'order_status';
-
-								$push_info_arr['order_status'] = $order_status;
-								$push_info_arr['order_no'] = $order_no;
-								$push_info_arr['order_primary_id'] = $order_primary_id;
-								$push_info_arr['order_text'] = $ordertext;
-								$push_info_arr['unique_id'] = $unique_id;
-
-								push_activities($customer_res['order_customer_id'], $push_from, $push_info_arr); */
-
-								/****************Push notification ande activities*****************/
-
-								/***Email Notification for status***/
-								//Comment
-								/* if ($availability_id == DELIVERY_ID) {
-									$deliveryStatusArr = array('1' => 'Order received', '3' => 'Order accepted', '2' => 'Food on the way', '4' => 'Delivered', '5' => 'Canceled');
-									$ordertext = $deliveryStatusArr[$order_status];
-								} else if ($availability_id == PICKUP_ID) {
-									$takewayStatusArr = array('1' => 'Order received', '3' => 'Order accepted', '2' => 'Ready for pickup', '4' => 'Completed', '5' => 'Canceled');
-									$ordertext = $takewayStatusArr[$order_status];
-								}
-
-								$get_email_id = get_emailtemplate($unique_id, 'order_status_changed_email');
-
-								if ($get_email_id != '') {
-
-									$this->load->library('myemail');
-									$check_arr = array('[NAME]', '[ORDER_NO]', '[ORDER_STATUS]');
-									$replace_arr = array(ucfirst(stripslashes($customer_res['customer_name'])), $order_no, $ordertext);
-									
-									$this->myemail->send_client_mail($customer_res['order_customer_email'], $get_email_id, $check_arr, $replace_arr, $company_id, $unique_id);
-								} */
-							}
-
-							$order_primary_id =  $order_list[0]['order_primary_id'];
-							$email_template_id = get_emailtemplate($unique_id, 'orderstatus');
-							if (!empty($email_template_id)) {
-								$cust_select_array = array('order_customer_id', 'CONCAT(order_customer_fname, "", order_customer_lname) AS customer_name', 'order_customer_email', 'order_customer_mobile_no');
-
-								$customer_res = $this->Mydb->get_record($cust_select_array, 'pos_orders_customer_details', array('order_customer_order_primary_id' => $order_primary_id));
-								$check_arr = array('[NAME]', '[ORDER_NO]', '[ORDER_STATUS]');
-								$replace_arr = array(ucfirst(stripslashes($customer_res['customer_name'])), $order_list[0]['order_local_no'], $ordertext);
-
-								$this->load->library('myemail');
-
-								$this->myemail->send_client_mail($company, 'praba9717@gmail.com', $email_template_id, $check_arr,  $replace_arr);
-							}
-
-							$response['status'] = 'success';
-							$response['order_status'] = $order_status;
-							$response['order_status_name'] = $ordertext;
-							$response['msg'] = sprintf($this->lang->line('success_message_order_status'), $this->label);
-							echo json_encode($response);
-							exit();
-						} else {
-
-							$response['msg'] = sprintf($this->lang->line('something_wrong'), $this->label);
-							$response['status'] = 'error';
-							echo json_encode($response);
-							exit();
-						}
-					} else { /*if cancelled already try to change other status or again cancel from Other tab*/
-
-						$response['msg'] = sprintf($this->lang->line('something_wrong'), $this->label);
-						$response['status'] = 'error';
-						echo json_encode($response);
-						exit();
+					$order_id = explode(',', $order_id);
+					foreach ($order_id as $val) {
+						$response = $this->updateOrderStatus($company_id, $company_admin_id, $company, $val, $order_status, $remarks, $order_tracking_remarks, '');
 					}
-				} else {
-					$response['msg'] = $this->lang->line('invalid_order_id');
-					$response['status'] = 'error';
 					echo json_encode($response);
 					exit();
+				} else {
+					$this->set_response(array(
+						'status' => 'error',
+						'message' => get_label('bp_order_primary_id_req'),
+						'form_error' => ''
+					), something_wrong()); /* error message */
 				}
 			} else {
 				$this->set_response(array(
@@ -739,7 +453,6 @@ class Orders extends REST_Controller
 			), something_wrong()); /* error message */
 		}
 	}
-
 	public function updateorderdate_post()
 	{
 		$headers = $this->input->request_headers();
@@ -872,6 +585,337 @@ class Orders extends REST_Controller
 			), something_wrong()); /* error message */
 		}
 	}
+
+	private function updateOrderStatus($company_id, $company_admin_id, $company, $order_id, $order_status, $remarks = null, $order_tracking_remarks = null, $rider_id = null)
+	{
+		$response = array();
+		$unique_id = $company['company_unquie_id'];
+		$join = array();
+		$i = 0;
+		$join[$i]['select'] = "status_name";
+		$join[$i]['table'] = "pos_order_status";
+		$join[$i]['condition'] = "order_status = status_id AND status_enabled='A' ";
+		$join[$i]['type'] = "RIGHT";
+		$i++;
+
+		$join[$i]['select'] = "pos_outlet_management.outlet_name";
+		$join[$i]['table'] = "pos_outlet_management";
+		$join[$i]['condition'] = "order_outlet_id = pos_outlet_management.outlet_id";
+		$join[$i]['type'] = "LEFT";
+
+		/* order table values */
+		$select_values = array(
+			'order_primary_id',
+			'order_id',
+			'order_status',
+			'order_availability_id',
+			'order_outlet_id',
+			'order_local_no',
+			'order_tracking_remarks'
+		);
+
+		/* get order list from query */
+		$order_list = $this->Mydb->get_all_records($select_values, $this->table, array(
+			'order_id' => $order_id
+		), 1, '', array(
+			'order_primary_id' => 'DESC'
+		), '', array(
+			'order_primary_id'
+		), $join, '');
+		if (!empty($order_list)) {
+			$availability_id = $order_list[0]['order_availability_id'];
+
+			if ($order_list[0]['order_status'] != 5) {
+
+				$order_text = $this->Mydb->get_record('status_name', 'order_status', array(
+					'status_id' => $order_status
+				));
+
+				$statusList = array(1, 2, 3, 4, 5);
+				if (in_array($order_status, $statusList)) {
+					$order_primary_id = $order_list[0]['order_primary_id'];
+
+					/*-------------------Order tracking details---------------------*/
+					$existing_order_tracking_remarks = $order_list[0]['order_tracking_remarks'];
+					if ($existing_order_tracking_remarks == '') {
+						$existing_order_tracking_remarks = array();
+					} else {
+						$existing_order_tracking_remarks = json_decode($existing_order_tracking_remarks, true);
+					}
+
+					if ($order_tracking_remarks != '') {
+
+						$existing_order_tracking_remarks[$order_status] = $order_tracking_remarks;
+					}
+
+					if (!empty($existing_order_tracking_remarks)) {
+						$existing_order_tracking_remarks = json_encode($existing_order_tracking_remarks);
+					} else {
+						$existing_order_tracking_remarks = null;
+					}
+
+					/*-------------------Order tracking end---------------------*/
+
+					if ($order_status == 5) {
+
+						/*------------ revit quantity to product stock and add log -----------*/
+						if (!empty($company['enable_stock']) && $company['enable_stock'] == "1") {
+							$join = array();
+							$join[0]['select'] = "item_id,item_product_id,item_qty,item_unit_price,item_total_amount";
+							$join[0]['table'] = "order_items";
+							$join[0]['condition'] = "item_order_primary_id = order_primary_id";
+							$join[0]['type'] = "INNER";
+							$products = $this->Mydb->get_all_records('order_primary_id,order_outlet_id,order_company_unique_id', 'orders', array('order_primary_id' => $order_primary_id), '', '', '', '', '', $join);
+
+							if (!empty($products)) {
+								foreach ($products as $pro_items) {
+									$order_itm_qty = ($pro_items['item_qty'] != '') ? $pro_items['item_qty'] : 0;
+									$item_product_id = $pro_items['item_product_id'];
+									$pro_order_id = $pro_items['order_primary_id'];
+
+									rest_product_stock_log($company, $item_product_id, $order_itm_qty, $pro_order_id, '', 'C');
+								}
+							}
+						}
+
+						/*------------------------ end product stock ------------------------*/
+						$this->Mydb->update($this->table, array(
+							'order_id' => $order_id
+						), array(
+							'order_status' => $order_status,
+							'order_remarks' => $remarks,
+							'order_cancel_remark' => $remarks,
+							'order_tracking_remarks' => $existing_order_tracking_remarks,
+							'order_cancel_date' => current_date(),
+							'order_cancel_source' => 'Business',
+							'order_cancel_by' => $company_admin_id
+						));
+						$customer_detail = $this->Mydb->get_record(array(
+							'order_customer_fname',
+							'order_customer_id',
+							'order_customer_lname',
+							'order_customer_email'
+						), 'pos_orders_customer_details', array(
+							'order_customer_order_id' => $order_id
+						));
+
+						/* revert points option */
+						$this->load->helper("promotionrevert");
+						removeRewardPoints($order_primary_id, $customer_detail['order_customer_id']);
+
+
+						//Comment
+						/* $first_name = (!empty($customer_detail['order_customer_fname'])) ? $customer_detail['order_customer_fname'] : "";
+						$last_name = (!empty($customer_detail['order_customer_lname'])) ? $customer_detail['order_customer_lname'] : "";
+						$customer_name = $first_name . " " . $last_name;
+
+						$company_name = $this->session->userdata('camp_company_name');
+
+						$company_array = $this->Mydb->get_record(array(
+							'company_id',
+							'client_name',
+							'client_site_url'
+						), 'pos_clients', array(
+							'client_name' => $company_name
+						));
+
+						//echo $this->db->last_query(); exit;
+
+						$base_url = ($company_array['client_site_url'] != '') ? trim($company_array['client_site_url'], '/') : base_url();
+
+						$emai_logo = $base_url . "/media/email-logo/email-logo.jpg";
+
+						$this->load->library('myemail');
+						$check_arr = array(
+							'[NAME]',
+							'[ORDER_Id]',
+							'[REMARKS]',
+							'[OUTLETNAME]',
+							'[LOCAL_ORDER_NO]',
+							'[LOGOURL]'
+						);
+						$replace_arr = array(
+							ucfirst(stripslashes($customer_name)),
+							$order_id,
+							stripslashes($remarks),
+							$order_list[0]['outlet_name'],
+							$order_list[0]['order_local_no'],
+							$emai_logo
+						);
+
+						$this->myemail->send_client_mail($customer_detail['order_customer_email'], get_emailtemplate($unique_id, 'order_cancel_template'), $check_arr, $replace_arr, $company_id, $unique_id);
+
+						$this->myemail->send_client_mail('', get_emailtemplate($unique_id, 'order_cancel_template'), $check_arr, $replace_arr, $company_id, $unique_id); */
+
+
+
+						/*  if order canceled revert loyalty points  and promotion */
+					} elseif ($order_status == 2 && $availability_id == DELIVERY_ID) {
+
+						if (!empty($rider_id)) {
+							/* remove previous rider entry */
+							$this->Mydb->delete('pos_rider_assigned_orders', array(
+								'assigned_order_company_id' => $company_id,
+								'assigned_order_company_unquie_id' => $unique_id,
+								'assigned_order_order_primary_id' => $order_list[0]['order_primary_id'],
+								'assigned_order_order_id' => $order_list[0]['order_id']
+							));
+
+							/* Insert new rider entry */
+							$this->Mydb->insert('pos_rider_assigned_orders', array(
+								'assigned_order_company_id' => $company_id,
+								'assigned_order_company_unquie_id' => $unique_id,
+								'assigned_order_order_primary_id' => $order_list[0]['order_primary_id'],
+								'assigned_order_order_id' => $order_list[0]['order_id'],
+								'assigned_order_outlet_id' => $order_list[0]['order_outlet_id'],
+								'assigned_order_rider_id' => $rider_id,
+								'assigned_order_created_on' => current_date(),
+								'assigned_order_created_by' => $company_admin_id,
+								'assigned_order_created_ip' => get_ip()
+							));
+
+							$this->Mydb->update($this->table, array(
+								'order_id' => $order_id
+							), array(
+								'order_status' => $order_status,
+								'order_tracking_remarks' => $existing_order_tracking_remarks,
+								'order_updated_on' => current_date(),
+								'order_updated_by' => $company_admin_id,
+								'order_updated_ip' => get_ip()
+							));
+						} else {
+							$response['msg'] = get_label('rider_required');
+							$response['status'] = 'error';
+						}
+					} else {
+
+						/* reward points*/
+						if ($order_status == '4') {
+
+							loyality_change_status($order_primary_id);
+							$this->AddRewardPoints($order_list[0]['order_primary_id']);
+
+							/* Membership upadeted Georges */
+							$voucher_auto_assign = $this->Mydb->get_record('setting_key,setting_value', 'company_settings', array(
+								'company_id' => $company_id, 'setting_key' => 'enable_voucher_auto_assign', 'setting_value' => '1'
+							));
+
+							if (empty($voucher_auto_assign)) {
+								$this->voucher_order_email($order_list[0]['order_primary_id'], $order_list[0]['order_id'], $company);  //sending voucher details email id
+							}
+						}
+						$this->Mydb->update($this->table, array(
+							'order_id' => $order_id
+						), array(
+							'order_status' => $order_status,
+							'order_tracking_remarks' => $existing_order_tracking_remarks,
+							'order_updated_on' => current_date(),
+							'order_updated_by' => $company_admin_id,
+							'order_updated_ip' => get_ip()
+						));
+					}
+
+					/* insert status log track */
+					$log_id = $this->insert_status_log($order_list[0]['order_primary_id'], $order_id, $order_status, $unique_id, $company_id);
+					/* find previous staus and update end date */
+					$this->update_status_log($log_id, $order_list[0]['order_status'], $order_list[0]['order_primary_id'], $unique_id);
+					/* reset pending order count */
+
+
+					/*Change status name*/
+					$ordertext = '';
+
+					if ($availability_id == PICKUP_ID) {
+						if ($order_status == 2) { /*if delivering meand change status as Ready to pickup*/
+							$ordertext = 'Ready to pickup';
+						}
+					} else if ($availability_id == DINEIN_ID && $order_status == 2) {
+						$ordertext = 'Ready to Eat';
+					} else {
+						$ordertext = $order_text['status_name'];
+					}
+
+					/*Push notify when complete the order*/
+					if ($order_status != '1') {
+						/****************Push notification ande activities*****************/
+
+						$order_no =  $order_list[0]['order_local_no'];
+						$order_primary_id =  $order_list[0]['order_primary_id'];
+
+						$cust_select_array = array('order_customer_id', 'CONCAT(order_customer_fname, "", order_customer_lname) AS customer_name', 'order_customer_email', 'order_customer_mobile_no');
+
+						$customer_res = $this->Mydb->get_record($cust_select_array, 'pos_orders_customer_details', array('order_customer_order_primary_id' => $order_primary_id));
+						//Comment
+						/* $push_info_arr = array();
+						$push_from = 'order_status';
+
+						$push_info_arr['order_status'] = $order_status;
+						$push_info_arr['order_no'] = $order_no;
+						$push_info_arr['order_primary_id'] = $order_primary_id;
+						$push_info_arr['order_text'] = $ordertext;
+						$push_info_arr['unique_id'] = $unique_id;
+
+						push_activities($customer_res['order_customer_id'], $push_from, $push_info_arr); */
+
+						/****************Push notification ande activities*****************/
+
+						/***Email Notification for status***/
+						//Comment
+						/* if ($availability_id == DELIVERY_ID) {
+							$deliveryStatusArr = array('1' => 'Order received', '3' => 'Order accepted', '2' => 'Food on the way', '4' => 'Delivered', '5' => 'Canceled');
+							$ordertext = $deliveryStatusArr[$order_status];
+						} else if ($availability_id == PICKUP_ID) {
+							$takewayStatusArr = array('1' => 'Order received', '3' => 'Order accepted', '2' => 'Ready for pickup', '4' => 'Completed', '5' => 'Canceled');
+							$ordertext = $takewayStatusArr[$order_status];
+						}
+
+						$get_email_id = get_emailtemplate($unique_id, 'order_status_changed_email');
+
+						if ($get_email_id != '') {
+
+							$this->load->library('myemail');
+							$check_arr = array('[NAME]', '[ORDER_NO]', '[ORDER_STATUS]');
+							$replace_arr = array(ucfirst(stripslashes($customer_res['customer_name'])), $order_no, $ordertext);
+							
+							$this->myemail->send_client_mail($customer_res['order_customer_email'], $get_email_id, $check_arr, $replace_arr, $company_id, $unique_id);
+						} */
+					}
+
+					$order_primary_id =  $order_list[0]['order_primary_id'];
+					$email_template_id = get_emailtemplate($unique_id, 'orderstatus');
+					if (!empty($email_template_id)) {
+						$cust_select_array = array('order_customer_id', 'CONCAT(order_customer_fname, "", order_customer_lname) AS customer_name', 'order_customer_email', 'order_customer_mobile_no');
+
+						$customer_res = $this->Mydb->get_record($cust_select_array, 'pos_orders_customer_details', array('order_customer_order_primary_id' => $order_primary_id));
+						$check_arr = array('[NAME]', '[ORDER_NO]', '[ORDER_STATUS]');
+						$replace_arr = array(ucfirst(stripslashes($customer_res['customer_name'])), $order_list[0]['order_local_no'], $ordertext);
+
+						$this->load->library('myemail');
+
+						$this->myemail->send_client_mail($company, 'praba9717@gmail.com', $email_template_id, $check_arr,  $replace_arr);
+					}
+
+					$response['status'] = 'success';
+					$response['order_status'] = $order_status;
+					$response['order_status_name'] = $ordertext;
+					$response['msg'] = sprintf($this->lang->line('success_message_order_status'), $this->label);
+				} else {
+
+					$response['msg'] = sprintf($this->lang->line('something_wrong'), $this->label);
+					$response['status'] = 'error';
+				}
+			} else { /*if cancelled already try to change other status or again cancel from Other tab*/
+
+				$response['msg'] = sprintf($this->lang->line('something_wrong'), $this->label);
+				$response['status'] = 'error';
+			}
+		} else {
+			$response['msg'] = $this->lang->line('invalid_order_id');
+			$response['status'] = 'error';
+		}
+		return $response;
+	}
+
 	private function loadOrderHistory($orderID, $unique_id)
 	{
 		$history = $this->Mydb->get_all_records('ohd_from_date, ohd_to_date, ohd_old_from_slot, ohd_new_from_slot, ohd_old_to_slot, ohd_new_to_slot, ohd_remark', $this->date_history, array('ohd_order_company_unique_id' => $unique_id, 'ohd_order_id' => $orderID));

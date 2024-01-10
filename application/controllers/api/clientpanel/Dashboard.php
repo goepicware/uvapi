@@ -144,6 +144,51 @@ class Dashboard extends REST_Controller
 						$result['itemdata'] = array_column($orderItemdata, 'totalAmount');
 					}
 
+					$join = array();
+					$i = 0;
+					$join[$i]['select'] = "SUM(outlet_sub_total_amount) AS totalAmount, COUNT(outlet_primary_id) AS totalOrder";
+					$join[$i]['table'] = $this->order_outlet . ' AS oot';
+					$join[$i]['condition'] = "pos_ot.outlet_id=oot.outlet_id";
+					$join[$i]['type'] = "LEFT";
+					$i++;
+
+					$join[$i]['select'] = "";
+					$join[$i]['table'] = $this->table;
+					$join[$i]['condition'] = "outlet_order_primary_id=order_primary_id";
+					$join[$i]['type'] = "LEFT";
+
+					$select_values = array(
+						'outlet_name'
+					);
+					$revenueWhere = array(
+						'outlet_unquie_id' => $unique_id,
+						"(order_status!='5' OR order_primary_id IS NULL)" => NULL
+					);
+					$outletRevenue = $this->Mydb->get_all_records($select_values, $this->outlet_management . " AS pos_ot", $revenueWhere, '', '', '', '', array('pos_ot.outlet_id'), $join);
+					$result['outletRevenue'] = $outletRevenue;
+
+
+					$join = array();
+					$i = 0;
+					$join[$i]['select'] = "";
+					$join[$i]['table'] = $this->table;
+					$join[$i]['condition'] = "item_order_primary_id=order_primary_id";
+					$join[$i]['type'] = "INNER";
+					$select_values = array(
+						'item_name',
+						'SUM(item_total_amount) AS totalAmount',
+						'SUM(item_qty) AS totalItem'
+					);
+					$revenueWhere = array(
+						'order_company_unique_id' => $unique_id,
+						"(order_status!='5' OR order_primary_id IS NULL)" => NULL,
+						'order_date>=' => $start . ' 00:00:00',
+						'order_date<=' => $endDate . ' 23:59:59'
+					);
+					$itemRevenue = $this->Mydb->get_all_records($select_values, $this->order_items, $revenueWhere, '', '', '', '', array('item_product_id'), $join);
+					$result['itemRevenue'] = $itemRevenue;
+
+
 					$return_array = array('status' => "ok", 'message' => 'success', 'result' => $result);
 					$this->set_response($return_array, success_response());
 				}

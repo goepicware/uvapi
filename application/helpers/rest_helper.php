@@ -190,7 +190,7 @@ if (!function_exists('get_local_ordeno')) {
 if (!function_exists('show_price_client')) {
 	function show_price_client($price, $company_currency)
 	{
-		return $company_currency . " " . number_format($price, 2);
+		return $company_currency . " " . number_format($price, 3);
 	}
 }
 
