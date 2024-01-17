@@ -248,13 +248,18 @@ class Customer extends REST_Controller
 			if ($decodedToken['status']) {
 				$company_id = decode_value($this->input->post('company_id'));
 				$delete_id = decode_value($this->input->post('delete_id'));
+				$company_admin_id = decode_value($this->input->post('company_admin_id'));
 				if (!empty($company_id)) {
+					$getCompanyDetails = getCompanyUniqueID($company_id);
 					$where = array(
 						$this->primary_key => trim($delete_id)
 					);
-					$result = $this->Mydb->get_record($this->primary_key, $this->table, $where);
+					$result = $this->Mydb->get_record($this->primary_key . ', customer_email', $this->table, $where);
 					if (!empty($result)) {
 						$this->Mydb->delete($this->table, array($this->primary_key => $result[$this->primary_key]));
+
+						createAuditLog("Customer", stripslashes($result['customer_email']), "Delete", $company_admin_id, 'Web', '', $company_id, $getCompanyDetails);
+
 						$return_array = array('status' => "ok", 'message' => sprintf(get_label('success_message_delete'), $this->label));
 						$this->set_response($return_array, success_response());
 					} else {
@@ -295,11 +300,10 @@ class Customer extends REST_Controller
 			'customer_birthdate' => post_value('birthdate'),
 			'customer_status' => ($this->input->post('status') == "A" ? 'A' : 'I'),
 		);
-
+		$company_id = decode_value($this->input->post('company_id'));
+		$company_admin_id = decode_value($this->input->post('company_admin_id'));
+		$getCompanyDetails = getCompanyUniqueID($company_id);
 		if ($action == 'add') {
-			$company_id = decode_value($this->input->post('company_id'));
-			$company_admin_id = decode_value($this->input->post('company_admin_id'));
-			$getCompanyDetails = getCompanyUniqueID($company_id);
 			$data = array_merge(
 				$data,
 				array(
@@ -313,6 +317,8 @@ class Customer extends REST_Controller
 			);
 
 			$this->Mydb->insert($this->table, $data);
+
+			createAuditLog("Customer", stripslashes(post_value('email')), "Add", $company_admin_id, 'Web', '', $company_id, $getCompanyDetails);
 		} else {
 			$password = post_value('password');
 			if (!empty($password)) {
@@ -330,6 +336,7 @@ class Customer extends REST_Controller
 				)
 			);
 			$this->Mydb->update($this->table, array($this->primary_key => $edit_id), $data);
+			createAuditLog("Customer", stripslashes(post_value('email')), "Updaate", $company_admin_id, 'Web', '', $company_id, $getCompanyDetails);
 		}
 	}
 

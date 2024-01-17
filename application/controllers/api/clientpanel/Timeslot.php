@@ -273,16 +273,30 @@ class Timeslot extends REST_Controller
 			if ($decodedToken['status']) {
 				$company_id = decode_value($this->input->post('company_id'));
 				$delete_id = decode_value($this->input->post('delete_id'));
+				$company_admin_id = decode_value($this->input->post('company_admin_id'));
 				if (!empty($company_id)) {
+					$get_company_details = $this->Mydb->get_record('company_unquie_id', 'company', array('company_id' => $company_id));
 					$where = array(
 						$this->primary_key => trim($delete_id)
 					);
-					$result = $this->Mydb->get_record($this->primary_key, $this->table, $where);
+					$result = $this->Mydb->get_record($this->primary_key . ', delivery_time_setting_availability_id, delivery_time_setting_outlet_id', $this->table, $where);
 					if (!empty($result)) {
 						$this->Mydb->delete($this->table, array($this->primary_key => $result[$this->primary_key]));
 						$this->Mydb->delete($this->time_order_count, array('delivery_time_setting_id' => $result[$this->primary_key]));
 						$this->Mydb->delete($this->time_settings_days, array('delivery_time_setting_day_time_setting_primary_id' => $result[$this->primary_key]));
 						$this->Mydb->delete($this->time_settings_time, array('delivery_time_setting_time_time_setting_primary_id' => $result[$this->primary_key]));
+
+						$avail = $this->Mydb->get_record('av_name', 'availability', array('av_id' => $result['delivery_time_setting_availability_id']));
+						if (!empty($result['delivery_time_setting_outlet_id'])) {
+							$outletDetails  = $this->Mydb->get_record('outlet_name', 'outlet_management', array('outlet_id' => $result['delivery_time_setting_outlet_id']));
+							$outlentName = $outletDetails['outlet_name'];
+						} else {
+							$outlentName = "Common";
+						}
+
+						$name = $outlentName . ' - ' . $avail['av_name'];
+
+						createAuditLog("Time Slot", $name, "Delete", $company_admin_id, 'Web', '', $company_id, $get_company_details['company_unquie_id']);
 
 						$return_array = array('status' => "ok", 'message' => sprintf(get_label('success_message_delete'), $this->label));
 						$this->set_response($return_array, success_response());
@@ -331,8 +345,19 @@ class Timeslot extends REST_Controller
 
 		$company_id = decode_value($this->input->post('company_id'));
 		$company_admin_id = decode_value($this->input->post('company_admin_id'));
+		$getCompanyDetails = getCompanyUniqueID($company_id);
+
+		$avail = $this->Mydb->get_record('av_name', 'availability', array('av_id' => post_value('assign_availability')));
+		if (!empty(post_value('assign_outlet'))) {
+			$outletDetails  = $this->Mydb->get_record('outlet_name', 'outlet_management', array('outlet_id' => post_value('assign_outlet')));
+			$outlentName = $outletDetails['outlet_name'];
+		} else {
+			$outlentName = "Common";
+		}
+
+		$name = $outlentName . ' - ' . $avail['av_name'];
+
 		if ($action == 'add') {
-			$getCompanyDetails = getCompanyUniqueID($company_id);
 			$data = array_merge(
 				$data,
 				array(
@@ -344,6 +369,7 @@ class Timeslot extends REST_Controller
 				)
 			);
 			$edit_id = $this->Mydb->insert($this->table, $data);
+			createAuditLog("Time Slot", stripslashes($name), "Add", $company_admin_id, 'Web', '', $company_id, $getCompanyDetails);
 		} else {
 			$data = array_merge(
 				$data,
@@ -354,6 +380,7 @@ class Timeslot extends REST_Controller
 				)
 			);
 			$this->Mydb->update($this->table, array($this->primary_key => $edit_id), $data);
+			createAuditLog("Time Slot", stripslashes($name), "Update", $company_admin_id, 'Web', '', $company_id, $getCompanyDetails);
 		}
 
 		if (!empty($edit_id)) {

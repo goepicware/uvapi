@@ -420,16 +420,21 @@ class Subcategory extends REST_Controller
 			if ($decodedToken['status']) {
 				$company_id = decode_value($this->input->post('company_id'));
 				$delete_id = decode_value($this->input->post('delete_id'));
+				$company_admin_id = decode_value($this->input->post('company_admin_id'));
 				if (!empty($company_id)) {
+					$getCompanyDetails = getCompanyUniqueID($company_id);
+
 					$where = array(
 						$this->primary_key => trim($delete_id ?? '')
 					);
-					$result = $this->Mydb->get_record($this->primary_key, $this->table, $where);
+					$result = $this->Mydb->get_record($this->primary_key . ', pro_subcate_name', $this->table, $where);
 					if (!empty($result)) {
 						$this->Mydb->delete($this->table, array($this->primary_key => $result[$this->primary_key]));
 
 						$this->Mydb->delete($this->category_availability, array('cate_availability_category_primary_id' => $result[$this->primary_key], 'cate_availability_type' => 'Subcategory'));
 						$this->Mydb->delete($this->assigned_outlets, array('pao_sub_category_primary_id' => $result[$this->primary_key]));
+
+						createAuditLog("Sub Category", stripslashes($result['pro_subcate_name']), "Delete", $company_admin_id, 'Web', '', $company_id, $getCompanyDetails);
 
 						$return_array = array('status' => "ok", 'message' => sprintf(get_label('success_message_delete'), $this->label));
 						$this->set_response($return_array, success_response());
@@ -503,6 +508,7 @@ class Subcategory extends REST_Controller
 			);
 
 			$edit_id = $this->Mydb->insert($this->table, $data);
+			createAuditLog("Sub Category", stripslashes(post_value('subcate_name')), "Add", $company_admin_id, 'Web', '', $company_id, $getCompanyDetails);
 		} else {
 
 			$slug = make_slug($subcate_name, $this->table, 'pro_subcate_slug', array("$this->primary_key !=" => $edit_id, $this->company_id => $company_id));
@@ -518,6 +524,9 @@ class Subcategory extends REST_Controller
 				)
 			);
 			$this->Mydb->update($this->table, array($this->primary_key => $edit_id), $data);
+
+			createAuditLog("Sub Category", stripslashes(post_value('subcate_name')), "Update", $company_admin_id, 'Web', '', $company_id, $getCompanyDetails);
+
 			$catDetail = $this->Mydb->get_record('pro_subcate_id', $this->table, array($this->primary_key => $edit_id));
 			$pro_subcate_id = $catDetail['pro_subcate_id'];
 		}

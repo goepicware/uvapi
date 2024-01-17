@@ -257,15 +257,18 @@ class Brands extends REST_Controller
 			if ($decodedToken['status']) {
 				$company_id = decode_value($this->input->post('company_id'));
 				$brand_id  = decode_value($this->input->post('delete_id'));
+				$company_admin_id = decode_value($this->input->post('company_admin_id'));
 				if (!empty($company_id)) {
-					$user_arr = array();
+					$get_company_details = $this->Mydb->get_record('company_unquie_id', 'company', array('company_id' => $company_id));
+
 					$where = array(
 						'brand_id' => trim($brand_id),
 						$this->company_id => $company_id,
 					);
-					$result = $this->Mydb->get_record('*', $this->table, $where);
+					$result = $this->Mydb->get_record('brand_id, brand_name', $this->table, $where);
 					if (!empty($result)) {
 						$this->Mydb->delete($this->table, array('brand_id' => $result['brand_id']));
+						createAuditLog("Brand", stripslashes($result['brand_name']), "Delete", $company_admin_id, 'Web', '', $company_id, $get_company_details['company_unquie_id']);
 						$return_array = array('status' => "ok", 'message' => 'Brand deleted successfully.',);
 						$this->set_response($return_array, success_response());
 					} else {
@@ -328,20 +331,15 @@ class Brands extends REST_Controller
 				'brand_slug' => $brand_slug,
 
 			));
-
-			$brandId = $this->Mydb->insert($this->table, $Itemarray);
+			$this->Mydb->insert($this->table, $Itemarray);
+			createAuditLog("Brand", stripslashes(post_value('brand_name')), "Add", $company_admin_id, 'Web', '', $company_id, $get_company_details['company_unquie_id']);
 		} else if ($action == 'edit') {
-
 			$brand_slug = make_slug(stripslashes(post_value('brand_name')), $this->table, 'brand_slug', '');
-
 			$Itemarray = array_merge($Itemarray,  array(
 				'brand_slug' => $brand_slug,
-
 			));
-
 			$this->Mydb->update($this->table, array($this->primary_key => $edit_id), $Itemarray);
-			// echo $this->db->last_query();
-			// exit;
+			createAuditLog("Brand", stripslashes(post_value('brand_name')), "Update", $company_admin_id, 'Web', '', $company_id, $get_company_details['company_unquie_id']);
 		}
 	}
 

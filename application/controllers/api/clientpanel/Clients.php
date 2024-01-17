@@ -87,6 +87,15 @@ class Clients extends REST_Controller
 						$company_folder = $this->Mydb->get_record('company_folder_name,company_name', 'pos_company', array('company_id' => $check_details['company_user_company_id'], 'company_unquie_id' => $check_details['company_user_unquie_id']));
 
 
+						$userPremisson = $this->Mydb->get_record('usergroup_module', 'company_user_groups', array('usergroup_id' => $check_details['company_user_group_id']));
+						$usergroupmodule = [];
+						if (!empty($userPremisson)) {
+							$usergroup_module = json_decode($userPremisson['usergroup_module']);
+							foreach ($usergroup_module as $value) {
+								$usergroupmodule[$value->module] = $value->permisson;
+							}
+						}
+
 						if (isset($company_folder['company_folder_name'])) {
 							create_folder($company_folder['company_folder_name']);
 						}
@@ -108,6 +117,7 @@ class Clients extends REST_Controller
 							'user_permission_outlet' => $user_permission_outlet,
 							'company_folder' => $company_folder['company_folder_name'],
 							'company_name' => $company_folder['company_name'],
+							'userPremisson' => (!empty($usergroupmodule)) ? $usergroupmodule : ""
 						);
 
 						/*if ($check_details['company_user_type'] == "SubAdmin") {
@@ -153,12 +163,12 @@ class Clients extends REST_Controller
 							}
 						} else {*/
 
-							$token_data['uid'] = $check_details['master_admin_id'];
-							$token_data['username'] = $check_details['master_admin_username'];
-							$tokenData = $this->authorization_token->generateToken($token_data);
+						$token_data['uid'] = $check_details['master_admin_id'];
+						$token_data['username'] = $check_details['master_admin_username'];
+						$tokenData = $this->authorization_token->generateToken($token_data);
 
-							$return_array = array('status' => "ok", 'message' => get_label('reset_login_success'), 'result' => $session_datas, 'token' => $tokenData);
-							$this->set_response($return_array, success_response());
+						$return_array = array('status' => "ok", 'message' => get_label('reset_login_success'), 'result' => $session_datas, 'token' => $tokenData);
+						$this->set_response($return_array, success_response());
 						/*}*/
 					}
 				} else {

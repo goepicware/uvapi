@@ -17,6 +17,7 @@ class Userrole extends REST_Controller
 		$this->load->library('form_validation');
 		$this->form_validation->set_error_delimiters('<p>', '</p>');
 		$this->table = "company_user_groups";
+		$this->company_modules = "company_modules";
 		$this->load->library('common');
 		$this->label = "User Role";
 		$this->load->library('Authorization_Token');
@@ -56,6 +57,35 @@ class Userrole extends REST_Controller
 				$result = $this->Mydb->get_all_records($select_array, $this->table, $where, $limit, $offset,  $order_by, $like, array($this->primary_key));
 				if (!empty($result)) {
 					$return_array = array('status' => "ok", 'message' => 'success', 'result' => $result, 'totalRecords' => $total_records, 'totalPages' => $totalPages);
+					$this->set_response($return_array, success_response());
+				} else {
+					$this->set_response(array('status' => 'error', 'message' => get_label('no_records_found')), something_wrong());
+				}
+			} else {
+				$this->set_response(array(
+					'status' => 'error',
+					'message' => get_label('token_verify_faild'),
+					'form_error' => ''
+				), something_wrong()); /* error message */
+			}
+		} else {
+			$this->set_response(array(
+				'status' => 'error',
+				'message' => get_label('token_faild'),
+				'form_error' => ''
+			), something_wrong()); /* error message */
+		}
+	}
+
+	public function loadModule_get()
+	{
+		$headers = $this->input->request_headers();
+		if (isset($headers['Authorization'])) {
+			$decodedToken = $this->authorization_token->validateToken($headers['Authorization']);
+			if ($decodedToken['status']) {
+				$result = $this->Mydb->get_all_records('module_name AS moduleName, module_slug AS moduleKey', $this->company_modules, array('module_status' => 'A'));
+				if (!empty($result)) {
+					$return_array = array('status' => "ok", 'message' => 'success', 'result' => $result);
 					$this->set_response($return_array, success_response());
 				} else {
 					$this->set_response(array('status' => 'error', 'message' => get_label('no_records_found')), something_wrong());
@@ -122,6 +152,18 @@ class Userrole extends REST_Controller
 				$where = array($this->primary_key => $id, $this->company_id => $company_id);
 				$result = $this->Mydb->get_record('*', $this->table, $where);
 				if (!empty($result)) {
+					$changesModule = [];
+					if (!empty($result['usergroup_module'])) {
+						$usergroup_module = json_decode($result['usergroup_module']);
+						if (!empty($usergroup_module)) {
+							foreach ($usergroup_module as $val) {
+								$changesModule[$val->module] = $val->permisson;
+							}
+							$result['usergroup_module'] = $changesModule;
+						}
+					} else {
+						$result['usergroup_module'] = [];
+					}
 					$return_array = array('status' => "ok", 'message' => 'success', 'result' => $result);
 					$this->set_response($return_array, success_response());
 				} else {
@@ -150,6 +192,7 @@ class Userrole extends REST_Controller
 			$decodedToken = $this->authorization_token->validateToken($headers['Authorization']);
 			if ($decodedToken['status']) {
 				$this->form_validation->set_rules('role_name', 'Role Name', 'required|trim|strip_tags|callback_role_exists');
+				$this->form_validation->set_rules('userModule', 'Role Permissions', 'required');
 				if ($this->form_validation->run() == TRUE) {
 					$this->addedit();
 					$this->set_response(array(
@@ -187,6 +230,7 @@ class Userrole extends REST_Controller
 			$decodedToken = $this->authorization_token->validateToken($headers['Authorization']);
 			if ($decodedToken['status']) {
 				$this->form_validation->set_rules('role_name', 'Role Name', 'required|trim|strip_tags|callback_role_exists');
+				$this->form_validation->set_rules('userModule', 'Role Permissions', 'required');
 				if ($this->form_validation->run() == TRUE) {
 					$edit_id = $this->input->post('edit_id');
 					$this->addedit($edit_id);
@@ -226,13 +270,18 @@ class Userrole extends REST_Controller
 			if ($decodedToken['status']) {
 				$company_id = decode_value($this->input->post('company_id'));
 				$delete_id = decode_value($this->input->post('delete_id'));
+				$company_admin_id = decode_value($this->input->post('company_admin_id'));
 				if (!empty($company_id)) {
+					$getCompanyDetails = getCompanyUniqueID($company_id);
 					$where = array(
 						$this->primary_key => trim($delete_id)
 					);
-					$result = $this->Mydb->get_record($this->primary_key, $this->table, $where);
+					$result = $this->Mydb->get_record($this->primary_key . ', usergroup_name', $this->table, $where);
 					if (!empty($result)) {
 						$this->Mydb->delete($this->table, array($this->primary_key => $result[$this->primary_key]));
+
+						createAuditLog("User Role", stripslashes($result['usergroup_name']), "Delete", $company_admin_id, 'Web', '', $company_id, $getCompanyDetails);
+
 						$return_array = array('status' => "ok", 'message' => sprintf(get_label('success_message_delete'), $this->label));
 						$this->set_response($return_array, success_response());
 					} else {
@@ -265,11 +314,12 @@ class Userrole extends REST_Controller
 		$action = post_value('action');
 		$data = array(
 			'usergroup_name' => post_value('role_name'),
+			'usergroup_module' => stripcslashes(post_value('userModule')),
 		);
-
+		$company_id = decode_value($this->input->post('company_id'));
+		$company_admin_id = decode_value($this->input->post('company_admin_id'));
+		$getCompanyDetails = getCompanyUniqueID($company_id);
 		if ($action == 'add') {
-			$company_id = decode_value($this->input->post('company_id'));
-			$company_admin_id = decode_value($this->input->post('company_admin_id'));
 			$data = array_merge(
 				$data,
 				array(
@@ -281,6 +331,7 @@ class Userrole extends REST_Controller
 			);
 
 			$this->Mydb->insert($this->table, $data);
+			createAuditLog("User Role", stripslashes(post_value('role_name')), "Add", $company_admin_id, 'Web', '', $company_id, $getCompanyDetails);
 		} else {
 			$data = array_merge(
 				$data,
@@ -291,6 +342,7 @@ class Userrole extends REST_Controller
 				)
 			);
 			$this->Mydb->update($this->table, array($this->primary_key => $edit_id), $data);
+			createAuditLog("User Role", stripslashes(post_value('role_name')), "Update", $company_admin_id, 'Web', '', $company_id, $getCompanyDetails);
 		}
 	}
 	public function role_exists()

@@ -257,14 +257,19 @@ class Sitelocation extends REST_Controller
 			if ($decodedToken['status']) {
 				$company_id = decode_value($this->input->post('company_id'));
 				$sl_location_id  = decode_value($this->input->post('delete_id'));
+				$company_admin_id = decode_value($this->input->post('company_admin_id'));
 				if (!empty($company_id)) {
+					$get_company_details = $this->Mydb->get_record('company_unquie_id', 'company', array('company_id' => $company_id));
 					$user_arr = array();
 					$where = array(
 						'sl_location_id' => trim($sl_location_id)
 					);
-					$result = $this->Mydb->get_record('*', $this->table, $where);
+					$result = $this->Mydb->get_record('sl_location_id, sl_name', $this->table, $where);
 					if (!empty($result)) {
 						$this->Mydb->delete($this->table, array('sl_location_id' => $result['sl_location_id'], 'sl_company_id' => $company_id));
+
+						createAuditLog("Site Location", stripslashes($result['sl_name']), "Delete", $company_admin_id, 'Web', '', $company_id, $get_company_details['company_unquie_id']);
+
 						$return_array = array('status' => "ok", 'message' => 'Site Location deleted successfully.',);
 						$this->set_response($return_array, success_response());
 					} else {
@@ -319,6 +324,7 @@ class Sitelocation extends REST_Controller
 			$sl_slug = make_slug(stripslashes(post_value('sl_name')), $this->table, 'sl_slug', '');
 			$Itemarray = array_merge($Itemarray, array('sl_slug' => $sl_slug));
 			$this->Mydb->insert($this->table, $Itemarray);
+			createAuditLog("Site Location", stripslashes(post_value('sl_name')), "Add", $company_admin_id, 'Web', '', $company_id, $get_company_details['company_unquie_id']);
 		} else if ($action == 'edit') {
 
 			$sl_slug = make_slug(stripslashes(post_value('sl_name')), $this->table, 'sl_slug', '');
@@ -332,6 +338,7 @@ class Sitelocation extends REST_Controller
 			));
 
 			$this->Mydb->update($this->table, array($this->primary_key => $sl_location_id), $Itemarray);
+			createAuditLog("Site Location", stripslashes(post_value('sl_name')), "Update", $company_admin_id, 'Web', '', $company_id, $get_company_details['company_unquie_id']);
 		}
 	}
 	public function sitelocationexists()

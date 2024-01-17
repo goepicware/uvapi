@@ -334,6 +334,8 @@ class Outletzone extends REST_Controller
 				'zone_created_ip' => get_ip()
 			));
 			$zone_id = $this->Mydb->insert($this->table, $Itemarray);
+
+			createAuditLog("Zone", stripslashes(post_value('zone_name')), "Add", $company_admin_id, 'Web', '', $company_id, $get_company_details['company_unquie_id']);
 		} else if ($action == 'edit') {
 			$Itemarray = array_merge($Itemarray, array(
 				'zone_updated_on' => current_date(),
@@ -342,6 +344,8 @@ class Outletzone extends REST_Controller
 			));
 
 			$this->Mydb->update($this->table, array($this->primary_key => $zone_id), $Itemarray);
+
+			createAuditLog("Zone", stripslashes(post_value('zone_name')), "Update", $company_admin_id, 'Web', '', $company_id, $get_company_details['company_unquie_id']);
 		}
 		if (!empty($zone_id)) {
 			if (!empty($checkingZone)) {
@@ -391,9 +395,9 @@ class Outletzone extends REST_Controller
 				'oa_app_id' => $get_company_details['company_unquie_id'],
 				'oa_outlet_id' => post_value('outlet'),
 				'oa_outlet_zone_id' => $zone_id,
-				'oa_region_type_primary' => $area_type_primary,
-				'oa_region_points_primary' => $area_point_primary,
-				'oa_region_radius_primary' => $area_radius_primary,
+				'oa_region_type_primary' => (!empty($area_type_primary)) ? $area_type_primary : '',
+				'oa_region_points_primary' => (!empty($area_point_primary)) ? $area_point_primary : '',
+				'oa_region_radius_primary' => (!empty($area_radius_primary)) ? $area_radius_primary : '',
 				'oa_region_marker_location' => post_value('outlet_marker_location'),
 				'oa_updated_on' => current_date(),
 				'oa_updated_by' => $company_admin_id,
@@ -434,15 +438,18 @@ class Outletzone extends REST_Controller
 			if ($decodedToken['status']) {
 				$company_id = decode_value($this->input->post('company_id'));
 				$zone_id = decode_value($this->input->post('zone_id'));
+				$company_admin_id = decode_value($this->input->post('company_admin_id'));
 				if (!empty($company_id)) {
-					$user_arr = array();
+					$get_company_details = $this->Mydb->get_record('company_unquie_id', 'company', array('company_id' => $company_id));
 					$where = array(
 						'zone_id' => trim($zone_id)
 					);
-					$result = $this->Mydb->get_record('*', $this->table, $where);
+					$result = $this->Mydb->get_record('zone_id, zone_name', $this->table, $where);
 					if (!empty($result)) {
 						$this->Mydb->delete($this->table, array('zone_id' => $zone_id, 'zone_company_id' => $company_id));
 						$this->Mydb->delete($this->area_table, array('oa_outlet_zone_id' => $zone_id, 'oa_company_id' => $company_id));
+
+						createAuditLog("Zone", stripslashes($result['zone_name']), "Delete", $company_admin_id, 'Web', '', $company_id, $get_company_details['company_unquie_id']);
 
 						$return_array = array('status' => "ok", 'message' => 'Oultet Zone deleted successfully.',);
 						$this->set_response($return_array, success_response());

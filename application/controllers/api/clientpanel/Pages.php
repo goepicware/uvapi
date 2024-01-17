@@ -200,13 +200,19 @@ class Pages extends REST_Controller
 			if ($decodedToken['status']) {
 				$company_id = decode_value($this->input->post('company_id'));
 				$delete_id = decode_value($this->input->post('delete_id'));
+				$company_admin_id = decode_value($this->input->post('company_admin_id'));
 				if (!empty($company_id)) {
+					$getCompanyDetails = getCompanyUniqueID($company_id);
+
 					$where = array(
 						$this->primary_key => trim($delete_id)
 					);
-					$result = $this->Mydb->get_record($this->primary_key, $this->table, $where);
+					$result = $this->Mydb->get_record($this->primary_key . ', cmspage_title', $this->table, $where);
 					if (!empty($result)) {
 						$this->Mydb->delete($this->table, array($this->primary_key => $result[$this->primary_key]));
+
+						createAuditLog("Page", stripslashes($result['cmspage_title']), "Delete", $company_admin_id, 'Web', '', $company_id, $getCompanyDetails);
+
 						$return_array = array('status' => "ok", 'message' => sprintf(get_label('success_message_delete'), $this->label));
 						$this->set_response($return_array, success_response());
 					} else {
@@ -252,12 +258,11 @@ class Pages extends REST_Controller
 		if (!empty($banner_image)) {
 			$data = array_merge($data, array('cmspage_banner_image' => $banner_image));
 		}
+		$company_id = decode_value($this->input->post('company_id'));
+		$company_admin_id = decode_value($this->input->post('company_admin_id'));
+		$getCompanyDetails = getCompanyUniqueID($company_id);
 
 		if ($action == 'add') {
-			$company_id = decode_value($this->input->post('company_id'));
-			$company_admin_id = decode_value($this->input->post('company_admin_id'));
-			$getCompanyDetails = getCompanyUniqueID($company_id);
-
 
 			$slug = make_slug($title, $this->table, 'cmspage_slug', array($this->company_id => $company_id));
 			$data = array_merge(
@@ -273,6 +278,7 @@ class Pages extends REST_Controller
 			);
 
 			$this->Mydb->insert($this->table, $data);
+			createAuditLog("Page", stripslashes(post_value('cmspage_title')), "Add", $company_admin_id, 'Web', '', $company_id, $getCompanyDetails);
 		} else {
 			$slug = make_slug($title, $this->table, 'cmspage_slug', array("$this->primary_key !=" => $edit_id, $this->company_id => $company_id));
 			$data = array_merge(
@@ -285,6 +291,7 @@ class Pages extends REST_Controller
 				)
 			);
 			$this->Mydb->update($this->table, array($this->primary_key => $edit_id), $data);
+			createAuditLog("Page", stripslashes(post_value('cmspage_title')), "Update", $company_admin_id, 'Web', '', $company_id, $getCompanyDetails);
 		}
 	}
 

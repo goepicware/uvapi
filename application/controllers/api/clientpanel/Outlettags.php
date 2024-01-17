@@ -235,13 +235,18 @@ class Outlettags extends REST_Controller
 			if ($decodedToken['status']) {
 				$company_id = decode_value($this->input->post('company_id'));
 				$delete_id = decode_value($this->input->post('delete_id'));
+				$company_admin_id = decode_value($this->input->post('company_admin_id'));
 				if (!empty($company_id)) {
+					$get_company_details = $this->Mydb->get_record('company_unquie_id', 'company', array('company_id' => $company_id));
 					$where = array(
 						$this->primary_key => trim($delete_id)
 					);
-					$result = $this->Mydb->get_record($this->primary_key, $this->table, $where);
+					$result = $this->Mydb->get_record($this->primary_key . ', tag_name', $this->table, $where);
 					if (!empty($result)) {
 						$this->Mydb->delete($this->table, array($this->primary_key => $result[$this->primary_key]));
+
+						createAuditLog("Outlet Tag", stripslashes($result['tag_name']), "Delete", $company_admin_id, 'Web', '', $company_id, $get_company_details['company_unquie_id']);
+
 						$return_array = array('status' => "ok", 'message' => sprintf(get_label('success_message_delete'), $this->label));
 						$this->set_response($return_array, success_response());
 					} else {
@@ -276,14 +281,11 @@ class Outlettags extends REST_Controller
 			'tag_name' => post_value('tag_name'),
 			'tag_status' => (post_value('status') == "A" ? 'A' : 'I'),
 		);
+		$company_id = decode_value($this->input->post('company_id'));
+		$company_admin_id = decode_value($this->input->post('company_admin_id'));
+		$getCompanyDetails = getCompanyUniqueID($company_id);
 
 		if ($action == 'add') {
-			$company_id = decode_value($this->input->post('company_id'));
-			$company_admin_id = decode_value($this->input->post('company_admin_id'));
-			$getCompanyDetails = getCompanyUniqueID($company_id);
-
-			$company_array = array('tag_company_id' => $company_id, 'tag_company_unquie_id' => $getCompanyDetails);
-
 			$data = array_merge(
 				$data,
 				array(
@@ -296,6 +298,7 @@ class Outlettags extends REST_Controller
 			);
 
 			$this->Mydb->insert($this->table, $data);
+			createAuditLog("Outlet Tag", stripslashes(post_value('tag_name')), "Add", $company_admin_id, 'Web', '', $company_id, $getCompanyDetails);
 		} else {
 			$data = array_merge(
 				$data,
@@ -306,6 +309,7 @@ class Outlettags extends REST_Controller
 				)
 			);
 			$this->Mydb->update($this->table, array($this->primary_key => $edit_id), $data);
+			createAuditLog("Outlet Tag", stripslashes(post_value('tag_name')), "Update", $company_admin_id, 'Web', '', $company_id, $getCompanyDetails);
 		}
 	}
 

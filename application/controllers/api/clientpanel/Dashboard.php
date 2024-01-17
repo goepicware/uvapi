@@ -27,8 +27,7 @@ class Dashboard extends REST_Controller
 		$this->order_methods = "order_methods";
 		$this->order_items = "order_items";
 		$this->component_set = "order_menu_set_components";
-		$this->date_history = "order_date_history";
-		$this->promotion_history = "promotion_history";
+		$this->site_location = "site_location";
 		$this->load->library('common');
 		$this->label = get_label('rest_order');
 		$this->load->library('Authorization_Token');
@@ -76,7 +75,7 @@ class Dashboard extends REST_Controller
 						$totalOrderAmount = $this->Mydb->get_all_records('SUM(order_total_amount) AS totalAmount', $this->table, $where);
 						$result['totalAmount'] = (!empty($totalOrderAmount) && !empty($totalOrderAmount[0]['totalAmount'])) ? $totalOrderAmount[0]['totalAmount'] : 0;
 
-						$todayWhere = array_merge($where, array('order_date>=' => date('Y-m-d') . ' 00:00:00', 'order_date<=' => date('Y-m-d') . ' 23:59:59'));
+						$todayWhere = array_merge($where, array('order_created_on>=' => date('Y-m-d') . ' 00:00:00', 'order_created_on<=' => date('Y-m-d') . ' 23:59:59'));
 						$todaytotalOrderAmount = $this->Mydb->get_all_records('SUM(order_total_amount) AS totalAmount', $this->table, $todayWhere);
 						$result['todaytotalAmount'] = (!empty($todaytotalOrderAmount) && !empty($todaytotalOrderAmount[0]['totalAmount'])) ? $todaytotalOrderAmount[0]['totalAmount'] : 0;
 
@@ -90,14 +89,14 @@ class Dashboard extends REST_Controller
 
 
 					$endDate = date('Y-m-d');
-					$where = array_merge($where, array('order_date>=' => $start . ' 00:00:00', 'order_date<=' => $endDate . ' 23:59:59'));
+					$where = array_merge($where, array('order_created_on>=' => $start . ' 00:00:00', 'order_created_on<=' => $endDate . ' 23:59:59'));
 
 					$groupBy = "orderDate";
 					if ($filterType == '3month') {
-						$groupBy = "YEAR(order_date), MONTH(order_date)";
+						$groupBy = "YEAR(order_created_on), MONTH(order_created_on)";
 					}
 
-					$orderdata = $this->Mydb->get_all_records('DATE(order_date) AS orderDate, SUM(order_total_amount) AS totalAmount', $this->table, $where, '', '', '', '', $groupBy);
+					$orderdata = $this->Mydb->get_all_records('DATE(order_created_on) AS orderDate, SUM(order_total_amount) AS totalAmount', $this->table, $where, '', '', '', '', $groupBy);
 					$order_data = array();
 
 					$result['xaxis'] = array();
@@ -182,11 +181,23 @@ class Dashboard extends REST_Controller
 					$revenueWhere = array(
 						'order_company_unique_id' => $unique_id,
 						"(order_status!='5' OR order_primary_id IS NULL)" => NULL,
-						'order_date>=' => $start . ' 00:00:00',
-						'order_date<=' => $endDate . ' 23:59:59'
+						'order_created_on>=' => $start . ' 00:00:00',
+						'order_created_on<=' => $endDate . ' 23:59:59'
 					);
 					$itemRevenue = $this->Mydb->get_all_records($select_values, $this->order_items, $revenueWhere, '', '', '', '', array('item_product_id'), $join);
 					$result['itemRevenue'] = $itemRevenue;
+
+
+					$select_values =
+						"(SELECT SUM(order_total_amount) FROM pos_orders WHERE order_location_id=sl_location_id AND `order_created_on`>='" . $start . " 00:00:00' AND
+						`order_created_on`<='" . $endDate . " 23:59:59' AND `order_status`!='5') AS totalAmount, (SELECT COUNT(order_total_amount) FROM pos_orders WHERE order_location_id=sl_location_id AND `order_created_on`>='" . $start . " 00:00:00'AND
+						`order_created_on`<='" . $endDate . " 23:59:59' AND `order_status`!='5') AS totalOrders,  `sl_name` AS `siteLocation`";
+
+					$siteLocWhere = array(
+						'sl_unquie_id' => $unique_id,
+					);
+					$siteLocRevenue = $this->Mydb->get_all_records($select_values, $this->site_location, $siteLocWhere);
+					$result['siteLocRevenue'] = $siteLocRevenue;
 
 
 					$return_array = array('status' => "ok", 'message' => 'success', 'result' => $result);

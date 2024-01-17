@@ -299,11 +299,13 @@ class Promotion extends REST_Controller
 			if ($decodedToken['status']) {
 				$company_id = decode_value($this->input->post('company_id'));
 				$delete_id = decode_value($this->input->post('delete_id'));
+				$company_admin_id = decode_value($this->input->post('company_admin_id'));
 				if (!empty($company_id)) {
+					$getCompanyDetails = getCompanyUniqueID($company_id);
 					$where = array(
 						$this->primary_key => trim($delete_id)
 					);
-					$result = $this->Mydb->get_record($this->primary_key, $this->table, $where);
+					$result = $this->Mydb->get_record($this->primary_key . ', promotion_name', $this->table, $where);
 					if (!empty($result)) {
 						$this->Mydb->delete($this->table, array($this->primary_key => $result[$this->primary_key]));
 
@@ -313,6 +315,8 @@ class Promotion extends REST_Controller
 						));
 						$this->Mydb->delete($this->promotion_categories, array('promo_promotion_primary_id' => $result[$this->primary_key]));
 						$this->Mydb->delete($this->promotion_customer, array('pro_promotion_id' => $result[$this->primary_key]));
+
+						createAuditLog("Promotion", stripslashes($result['promotion_name']), "Delete", $company_admin_id, 'Web', '', $company_id, $getCompanyDetails);
 
 						$return_array = array('status' => "ok", 'message' => sprintf(get_label('success_message_delete'), $this->label));
 						$this->set_response($return_array, success_response());
@@ -383,6 +387,8 @@ class Promotion extends REST_Controller
 			);
 
 			$edit_id = $this->Mydb->insert($this->table, $data);
+
+			createAuditLog("Promotion", stripslashes(post_value('promotion_name')), "Add", $company_admin_id, 'Web', '', $company_id, $getCompanyDetails);
 		} else {
 
 			$data = array_merge(
@@ -394,6 +400,8 @@ class Promotion extends REST_Controller
 				)
 			);
 			$this->Mydb->update($this->table, array($this->primary_key => $edit_id), $data);
+
+			createAuditLog("Promotion", stripslashes(post_value('promotion_name')), "Update", $company_admin_id, 'Web', '', $company_id, $getCompanyDetails);
 		}
 		if (!empty($edit_id)) {
 			$promo_avilablity = (post_value('assign_availability') != "") ? explode(',', post_value('assign_availability')) : [];

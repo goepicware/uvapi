@@ -102,7 +102,40 @@ class Users extends REST_Controller
 			), something_wrong()); /* error message */
 		}
 	}
-
+	public function dropdownlist_get()
+	{
+		$headers = $this->input->request_headers();
+		if (isset($headers['Authorization'])) {
+			$decodedToken = $this->authorization_token->validateToken($headers['Authorization']);
+			if ($decodedToken['status']) {
+				$company_id = decode_value($this->input->get('company_id'));
+				$select_array = array(
+					$this->primary_key . ' AS value',
+					"CONCAT(company_user_fname, ' ', company_user_lname, ' (', company_username, ')') AS label",
+				);
+				$where = array(
+					$this->company_id => $company_id
+				);
+				$result = $this->Mydb->get_all_records($select_array, $this->table, $where);
+				if (!empty($result)) {
+					$return_array = array('status' => "ok", 'message' => 'success', 'result' => $result);
+					$this->set_response($return_array, success_response());
+				} else {
+					$this->set_response(array('status' => 'error', 'message' => get_label('no_records_found')), something_wrong());
+				}
+			} else {
+				$this->set_response(array(
+					'status' => 'error',
+					'message' => get_label('token_verify_faild'),
+				), something_wrong()); /* error message */
+			}
+		} else {
+			$this->set_response(array(
+				'status' => 'error',
+				'message' => get_label('token_faild'),
+			), something_wrong()); /* error message */
+		}
+	}
 	public function details_get()
 	{
 		$headers = $this->input->request_headers();
@@ -232,13 +265,19 @@ class Users extends REST_Controller
 			if ($decodedToken['status']) {
 				$company_id = decode_value($this->input->post('company_id'));
 				$delete_id = decode_value($this->input->post('delete_id'));
+				$company_admin_id = decode_value($this->input->post('company_admin_id'));
 				if (!empty($company_id)) {
+					$getCompanyDetails = getCompanyUniqueID($company_id);
 					$where = array(
 						$this->primary_key => trim($delete_id)
 					);
-					$result = $this->Mydb->get_record($this->primary_key, $this->table, $where);
+					$result = $this->Mydb->get_record($this->primary_key . ', company_user_email_address', $this->table, $where);
 					if (!empty($result)) {
+
 						$this->Mydb->delete($this->table, array($this->primary_key => $result[$this->primary_key]));
+
+						createAuditLog("User", stripslashes($result['company_user_email_address']), "Delete", $company_admin_id, 'Web', '', $company_id, $getCompanyDetails);
+
 						$return_array = array('status' => "ok", 'message' => sprintf(get_label('success_message_delete'), $this->label));
 						$this->set_response($return_array, success_response());
 					} else {
@@ -340,11 +379,11 @@ class Users extends REST_Controller
 			'company_user_profile_picture' => post_value('profile_picture'),
 			'company_user_status' 		=> ($this->input->post('status') == "A" ? 'A' : 'I')
 		);
+		$company_id = decode_value($this->input->post('company_id'));
+		$company_admin_id = decode_value($this->input->post('company_admin_id'));
+		$getCompanyDetails = getCompanyUniqueID($company_id);
 
 		if ($action == 'add') {
-			$company_id = decode_value($this->input->post('company_id'));
-			$company_admin_id = decode_value($this->input->post('company_admin_id'));
-			$getCompanyDetails = getCompanyUniqueID($company_id);
 			$data = array_merge(
 				$data,
 				array(
@@ -360,6 +399,7 @@ class Users extends REST_Controller
 			);
 
 			$this->Mydb->insert($this->table, $data);
+			createAuditLog("User", stripslashes(post_value('email')), "Add", $company_admin_id, 'Web', '', $company_id, $getCompanyDetails);
 		} else {
 			$password = post_value('password');
 			if (!empty($password)) {
@@ -378,6 +418,7 @@ class Users extends REST_Controller
 				)
 			);
 			$this->Mydb->update($this->table, array($this->primary_key => $edit_id), $data);
+			createAuditLog("User", stripslashes(post_value('email')), "Update", $company_admin_id, 'Web', '', $company_id, $getCompanyDetails);
 		}
 	}
 	public function username_exists()

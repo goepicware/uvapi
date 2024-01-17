@@ -298,14 +298,18 @@ class Outlets extends REST_Controller
 			if ($decodedToken['status']) {
 				$company_id = decode_value($this->input->post('company_id'));
 				$outlet_id = decode_value($this->input->post('delete_id'));
+				$company_admin_id = decode_value($this->input->post('company_admin_id'));
 				if (!empty($company_id)) {
-					$user_arr = array();
+					$get_company_details = $this->Mydb->get_record('company_unquie_id', 'company', array('company_id' => $company_id));
 					$where = array(
 						'outlet_id' => trim($outlet_id)
 					);
-					$result = $this->Mydb->get_record('*', $this->table, $where);
+					$result = $this->Mydb->get_record('outlet_id, outlet_name', $this->table, $where);
 					if (!empty($result)) {
 						$this->Mydb->delete($this->table, array('outlet_id' => $result['outlet_id'], 'outlet_company_id' => $company_id));
+
+						createAuditLog("Outlet", stripslashes($result['outlet_name']), "Delete", $company_admin_id, 'Web', '', $company_id, $get_company_details['company_unquie_id']);
+
 						$return_array = array('status' => "ok", 'message' => 'Oultet deleted successfully.',);
 						$this->set_response($return_array, success_response());
 					} else {
@@ -418,9 +422,13 @@ class Outlets extends REST_Controller
 			$Itemarray = array_merge($Itemarray, array('outlet_slug' => $outlet_slug));
 
 			$OutletID = $this->Mydb->insert($this->table, $Itemarray);
+
+			createAuditLog("Outlet", stripslashes(post_value('outlet_name')), "Add", $company_admin_id, 'Web', '', $company_id, $get_company_details['company_unquie_id']);
 		} else if ($action == 'edit') {
 
 			$this->Mydb->update($this->table, array($this->primary_key => $outlet_id), $Itemarray);
+
+			createAuditLog("Outlet", stripslashes(post_value('outlet_name')), "Update", $company_admin_id, 'Web', '', $company_id, $get_company_details['company_unquie_id']);
 			$OutletID = $outlet_id;
 		}
 		if ($OutletID) {
