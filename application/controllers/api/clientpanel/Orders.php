@@ -71,7 +71,10 @@ class Orders extends REST_Controller
 						'order_payment_retrieved',
 						'order_pickup_time_slot_from',
 						'order_pickup_time_slot_to',
-						'order_is_timeslot'
+						'order_is_timeslot',
+						'order_driver_ref_id',
+						'order_driver_name',
+						'order_driver_phone'
 					);
 					$limit = $offset = $like = '';
 					$get_limit = $this->input->get('limit');

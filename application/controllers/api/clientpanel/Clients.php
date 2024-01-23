@@ -290,6 +290,16 @@ class Clients extends REST_Controller
 					$settingArray['assign_availability'] = post_value('assign_availability');
 
 					$this->Mydb->update($this->settings, array($this->primary_key => $edit_id), array('setting_value' => json_encode($settingArray)));
+					$auditLogList = array('changegeneralInfo' => 'General Info', 'changecontactInfo' => 'Contact Info', 'changeavailablity' => 'Availablity', 'changetax' => 'Tax Setting', 'changeInvoice' => 'Invoice Setting', 'changePromotion' => 'Promotion Setting', 'changeLoyalty' => 'Loyalty Setting', 'changeSocialMedia' => 'Social Media Setting', 'changeMailConfig' => 'Mail Config Setting', 'changeMaintenance' => 'Maintenance Mode');
+					if (!empty($auditLogList)) {
+						$getCompanyDetails = getCompanyUniqueID($edit_id);
+						foreach ($auditLogList as $key => $val) {
+							if (post_value($key) == 'Yes') {
+								createAuditLog("Setting", 'Changed ' . $val, "Update", $company_admin_id, 'Web', '', $edit_id, $getCompanyDetails);
+							}
+						}
+					}
+
 					$this->set_response(array(
 						'status' => 'success',
 						'message' => sprintf(get_label('success_message_edit'), $this->label),

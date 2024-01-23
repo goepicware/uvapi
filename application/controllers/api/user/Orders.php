@@ -210,7 +210,7 @@ class Orders extends REST_Controller
 		$join[$i]['type']      = "INNER";
 		$i++;
 
-		$ordersList = $this->Mydb->get_all_records('order_primary_id, order_local_no AS orderNumber, order_total_amount, order_driver_phone, order_driver_name, order_delivary_type AS deliverySource, order_date, order_total_amount AS totalAmount, order_status AS orderStatus',  $this->table, $where, '', '', array('order_date' => 'ASC'), '', array('order_primary_id'), $join);
+		$ordersList = $this->Mydb->get_all_records('order_primary_id, order_local_no AS orderNumber, order_total_amount, order_driver_phone, order_driver_name, order_delivary_type AS deliverySource, order_date, order_total_amount AS totalAmount, order_status AS orderStatus, order_rating_option',  $this->table, $where, '', '', array('order_primary_id' => 'DESC'), '', array('order_primary_id'), $join);
 		if (!empty($ordersList)) {
 			$storeID = array_column($ordersList, 'storeID');
 			if (!empty($storeID)) {
@@ -747,6 +747,60 @@ class Orders extends REST_Controller
 				$this->response(array(
 					'status' => 'ok',
 					'message' => get_label('rest_product_added')
+				), success_response());
+			} else {
+				$this->set_response(array(
+					'status' => 'error',
+					'message' => get_label('bp_order_invalid'),
+				), something_wrong()); /* error message */
+			}
+		} else {
+			$this->set_response(array(
+				'status' => 'error',
+				'message' => get_label('rest_form_error'),
+				'form_error' => validation_errors()
+			), something_wrong()); /* error message */
+		}
+	}
+
+	public function createRating_post()
+	{
+		$unquieid = post_value('unquieid');
+		$company = app_validation($unquieid);
+		$this->form_validation->set_rules('customerID', 'lang:rest_customer_id', 'required|callback_validate_customer');
+		$this->form_validation->set_rules('orderID', 'lang:bp_order_primary_id_req', 'required');
+		if ($this->form_validation->run() == TRUE) {
+			$customerID = decode_value(post_value('customerID'));
+			$orderID = decode_value(post_value('orderID'));
+			$rating = post_value('rating');
+			$orderDetails = $this->Mydb->get_record('order_primary_id', $this->table, array('order_primary_id' => $orderID));
+			if (!empty($orderDetails)) {
+				$this->Mydb->update($this->table, array('order_primary_id' => $orderID, 'order_company_unique_id' => $unquieid), array('order_rating_option' => $rating, 'order_rating_date' => date('Y-m-d')));
+
+				$orderOutlet = $this->Mydb->get_all_records('outlet_id', $this->order_outlet, array('outlet_order_primary_id' => $orderID));
+				if (!empty($orderOutlet)) {
+					foreach ($orderOutlet as $val) {
+
+						$join = array();
+						$i = 0;
+						$join[$i]['select']    = 'SUM(order_rating_option) AS sumRating, COUNT(order_rating_option) AS totalRating';
+						$join[$i]['condition'] = "outlet_order_primary_id = order_primary_id";
+						$join[$i]['table']     = $this->table;
+						$join[$i]['type']      = "INNER";
+						$i++;
+						$orderRating = $this->Mydb->get_all_records('outlet_primary_id',  $this->order_outlet, array('outlet_id' => $val['outlet_id'], 'order_rating_option!=' => '0.00'), '', '', '', '', 'outlet_id', $join);
+						if (!empty($orderRating)) {
+							$sumRating = $orderRating[0]['sumRating'];
+							$totalRating = $orderRating[0]['totalRating'];
+							$avgRaring = number_format($sumRating / $totalRating, 1, '.', '');
+							$this->Mydb->update($this->outlet, array('outlet_id' => $val['outlet_id']), array('outlet_rating' => $avgRaring, 'outlet_total_rating' => $totalRating));
+						}
+					}
+				}
+
+				$this->response(array(
+					'status' => 'ok',
+					'message' => get_label('review_success')
 				), success_response());
 			} else {
 				$this->set_response(array(

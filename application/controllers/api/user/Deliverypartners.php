@@ -81,7 +81,7 @@ class Deliverypartners extends REST_Controller
 				$orderItem[] = array(
 					'name' => $product['itemName'],
 					'quantity' => $product['itemQuantity'],
-					'description' => $product['itemRemarks'],
+					'description' => (!empty($product['itemRemarks'])) ? $product['itemRemarks'] : $product['itemName'],
 					'price' => $product['itemTotalPrice'],
 					'dimension' => array(
 						'height' => 0,

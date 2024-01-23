@@ -1174,6 +1174,7 @@ $config['csrf_exclude_uris'] = array(
 
 	'api/user/coupon/applyPromo',
 	'api/user/orders/orderAgain',
+	'api/user/orders/createRating',
 );
 
 /*

@@ -309,6 +309,13 @@ class Sitelocation extends REST_Controller
 			'sl_pickup_unit_number1' 	=> post_value('sl_pickup_unit_number1'),
 			'sl_pickup_unit_number2' 	=> post_value('sl_pickup_unit_number2'),
 			'sl_pickup_address_line1' 	=> post_value('sl_pickup_address_line1'),
+			'sl_pickup_province'		=> post_value('sl_pickup_province'),
+			'sl_pickup_city'			=> post_value('sl_pickup_city'),
+			'sl_pickup_district'		=> post_value('sl_pickup_district'),
+			'sl_pickup_village'			=> post_value('sl_pickup_village'),
+			'sl_pickup_country'			=> post_value('sl_pickup_country'),
+			'sl_latitude' 				=> post_value('sl_latitude'),
+			'sl_longitude' 				=> post_value('sl_longitude'),
 			'sl_location_name'          => post_value('sl_location_name'),
 			'sl_status' 				=> (post_value('status') == "A" ? 'A' : 'I'),
 			'sl_image' 					=> post_value('sl_image')

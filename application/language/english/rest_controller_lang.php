@@ -781,3 +781,4 @@ $lang['email_sent_success'] = "Email has been sent successfully";
 $lang['email_sent_faild'] = "Email not sent";
 $lang['order_id_req'] = 'Order ID is required';
 $lang['email_already_sent'] = 'Email Already Sent';
+$lang['review_success'] = 'Thank you for your review.';
